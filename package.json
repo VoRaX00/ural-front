@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-keycloak/web": "^3.4.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -11,8 +12,12 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
+    "antd": "^6.2.3",
+    "axios": "^1.13.6",
+    "keycloak-js": "^26.2.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-router-dom": "^6.30.3",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
@@ -22,6 +27,15 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "/node_modules/(?!antd|@ant-design|@rc-component|axios)/"
+    ],
+    "moduleNameMapper": {
+      "^@rc-component/picker/locale/en_US$": "<rootDir>/node_modules/@rc-component/picker/lib/locale/en_US.js",
+      "^@rc-component/picker/generate/dayjs$": "<rootDir>/node_modules/@rc-component/picker/lib/generate/dayjs.js"
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -40,5 +54,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/keycloak-js": "^2.5.4"
   }
 }

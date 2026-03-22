@@ -1,25 +1,36 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthProvider";
+import { PrivateLayout } from "./layout/PrivateLayout";
+import "./App.css";
+import { CarCreatePage } from "./pages/cars/CarCreatePage";
+import { CarDetailPage } from "./pages/cars/CarDetailPage";
+import { CarsListPage } from "./pages/cars/CarsListPage";
+import { CargoCreatePage } from "./pages/cargo/CargoCreatePage";
+import { CargoDetailPage } from "./pages/cargo/CargoDetailPage";
+import { CargoListPage } from "./pages/cargo/CargoListPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<PrivateLayout />}>
+            <Route index element={<Navigate to="/cars" replace />} />
+            <Route path="cars/new" element={<CarCreatePage />} />
+            <Route path="cars/:id" element={<CarDetailPage />} />
+            <Route path="cars" element={<CarsListPage />} />
+            <Route path="cargo/new" element={<CargoCreatePage />} />
+            <Route path="cargo/:id" element={<CargoDetailPage />} />
+            <Route path="cargo" element={<CargoListPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

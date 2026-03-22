@@ -1,3 +1,133 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #f0f5ff 0%, #ffffff 45%, #fafafa 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.home-panel {
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-inline: 24px;
+  line-height: normal;
+}
+
+.app-header-brand {
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.app-header-menu {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none !important;
+}
+
+.app-header-logout {
+  color: #fff !important;
+  flex-shrink: 0;
+}
+
+.app-content {
+  padding: 0;
+}
+
+.app-content-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.list-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.list-page-pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.entity-card {
+  height: 100%;
+  min-height: 280px;
+  cursor: pointer;
+}
+
+.entity-card .ant-card-body {
+  min-height: 220px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.entity-card-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.entity-card-meta:last-child {
+  margin-bottom: 0;
+}
+
+.detail-page-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-page {
+  text-align: left;
+}
+
+.form-card {
+  max-width: 640px;
+}
+
 .App {
   text-align: center;
 }
