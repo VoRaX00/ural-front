@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/apiBaseUrl";
 import { AuthDto } from "../types/auth";
 import {
   clearAuthTokens,
@@ -7,10 +8,8 @@ import {
   readStoredRefreshToken,
 } from "../auth/tokenPersistence";
 
-const API_URL = "http://localhost:10902";
-
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
 });
 
 let accessToken: string | null = null;
@@ -84,7 +83,7 @@ api.interceptors.response.use(
         const refreshToken = readStoredRefreshToken();
 
         const res = await axios.post(
-          "http://localhost:10902/auth/refresh-tokens",
+          `${API_BASE_URL}/auth/refresh-tokens`,
           { refreshToken }
         );
 

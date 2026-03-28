@@ -14,6 +14,9 @@ FROM nginx:alpine
 
 COPY --from=builder /app/build /usr/share/nginx/html
 
+COPY docker/10-runtime-config.sh /docker-entrypoint.d/10-runtime-config.sh
+RUN chmod +x /docker-entrypoint.d/10-runtime-config.sh
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
