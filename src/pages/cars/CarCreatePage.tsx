@@ -1,18 +1,33 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Card, Form, Input, InputNumber, Typography, message } from "antd";
+import { Button, Card, Form, Input, InputNumber, Typography, Upload, message } from "antd";
+import type { RcFile } from "antd/es/upload";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as carsApi from "../../api/cars.api";
+import * as filesApi from "../../api/files.api";
 import type { CreateCarPayload } from "../../types/domain";
 
 export const CarCreatePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<RcFile[]>([]);
 
   const onFinish = async (values: CreateCarPayload) => {
     setLoading(true);
     try {
-      const created = await carsApi.createCar(values);
+      let fileIds: number[] | undefined = undefined;
+      if (files.length > 0) {
+        const uploaded = await filesApi.uploadFiles({
+          files,
+          types: files.map(() => "IMAGE"),
+        });
+        fileIds = uploaded.map((x) => x.id);
+      }
+
+      const created = await carsApi.createCar({
+        ...values,
+        fileIds,
+      });
       message.success("Транспорт создан");
       navigate(`/cars/${created.id}`, { replace: true });
     } catch {
@@ -75,6 +90,20 @@ export const CarCreatePage = () => {
             rules={[{ required: true, message: "Укажите VIN" }]}
           >
             <Input maxLength={32} />
+          </Form.Item>
+
+          <Form.Item label="Фотографии транспорта">
+            <Upload
+              multiple
+              listType="picture"
+              beforeUpload={() => false}
+              onChange={(info) => {
+                const next = info.fileList.map((x) => x.originFileObj).filter(Boolean) as RcFile[];
+                setFiles(next);
+              }}
+            >
+              <Button>Выбрать файлы</Button>
+            </Upload>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>

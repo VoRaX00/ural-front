@@ -7,6 +7,21 @@ export interface PaginatedResponse<T> {
   itemsOnPage: number;
 }
 
+export interface ContractDto {
+  id: number;
+  carId: number;
+  cargoId: number;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateContractPayload {
+  carId: number;
+  cargoId: number;
+  price: number;
+}
+
 export interface CarDto {
   id: string;
   carType: string;
@@ -17,6 +32,7 @@ export interface CarDto {
   createdAt: string;
   updatedAt: string;
   vinNumber: string;
+  fileIds?: number[];
 }
 
 /** Поля для POST /cars (без id, пользователя и меток времени). */
@@ -26,6 +42,7 @@ export interface CreateCarPayload {
   carModel: string;
   yearProduction: number;
   vinNumber: string;
+  fileIds?: number[];
 }
 
 export interface AddressDto {
@@ -57,6 +74,7 @@ export interface CargoDto {
   status: string;
   createdAt: string;
   updatedAt: string;
+  fileIds?: number[];
 }
 
 export interface CreateCargoPayload {
@@ -70,5 +88,6 @@ export interface CreateCargoPayload {
   unloadingPlace: AddressDto;
   price: number;
   comment?: string;
-  type: string;
+  status: string;
+  fileIds?: number[];
 }

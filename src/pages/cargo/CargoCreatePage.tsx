@@ -1,8 +1,10 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Card, Form, Input, InputNumber, Typography, message } from "antd";
+import { Button, Card, Form, Input, InputNumber, Typography, Upload, message } from "antd";
+import type { RcFile } from "antd/es/upload";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as cargoApi from "../../api/cargo.api";
+import * as filesApi from "../../api/files.api";
 import type { CreateCargoPayload } from "../../types/domain";
 
 const addressRules = [{ required: true, message: "Заполните поле" }];
@@ -10,13 +12,26 @@ const addressRules = [{ required: true, message: "Заполните поле" }
 export const CargoCreatePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<RcFile[]>([]);
 
   const onFinish = async (values: CreateCargoPayload) => {
     setLoading(true);
     try {
+      if (files.length === 0) {
+        message.error("Добавьте хотя бы одну фотографию груза");
+        return;
+      }
+
+      const uploaded = await filesApi.uploadFiles({
+        files,
+        types: files.map(() => "IMAGE"),
+      });
+      const fileIds = uploaded.map((x) => x.id);
+
       const created = await cargoApi.createCargo({
         ...values,
         comment: values.comment?.trim() || undefined,
+        fileIds,
       });
       message.success("Груз создан");
       navigate(`/cargo/${created.id}`, { replace: true });
@@ -49,7 +64,7 @@ export const CargoCreatePage = () => {
           <Form.Item name="name" label="Название" rules={[{ required: true, message: "Укажите название" }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="type" label="Тип груза" rules={[{ required: true, message: "Укажите тип" }]}>
+          <Form.Item name="status" label="Тип груза" rules={[{ required: true, message: "Укажите тип" }]}>
             <Input />
           </Form.Item>
 
@@ -121,6 +136,25 @@ export const CargoCreatePage = () => {
 
           <Form.Item name="comment" label="Комментарий">
             <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Form.Item
+            label="Фотографии груза"
+            required
+            help={files.length === 0 ? "Нужно добавить хотя бы одну фотографию" : undefined}
+            validateStatus={files.length === 0 ? "error" : undefined}
+          >
+            <Upload
+              multiple
+              listType="picture"
+              beforeUpload={() => false}
+              onChange={(info) => {
+                const next = info.fileList.map((x) => x.originFileObj).filter(Boolean) as RcFile[];
+                setFiles(next);
+              }}
+            >
+              <Button>Выбрать файлы</Button>
+            </Upload>
           </Form.Item>
 
           <Form.Item>

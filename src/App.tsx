@@ -8,6 +8,7 @@ import { CarsListPage } from "./pages/cars/CarsListPage";
 import { CargoCreatePage } from "./pages/cargo/CargoCreatePage";
 import { CargoDetailPage } from "./pages/cargo/CargoDetailPage";
 import { CargoListPage } from "./pages/cargo/CargoListPage";
+import { ContractsListPage } from "./pages/contracts/ContractsListPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="cargo/new" element={<CargoCreatePage />} />
             <Route path="cargo/:id" element={<CargoDetailPage />} />
             <Route path="cargo" element={<CargoListPage />} />
+            <Route path="contracts" element={<ContractsListPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

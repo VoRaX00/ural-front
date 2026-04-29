@@ -1,4 +1,4 @@
-import { CarOutlined, LogoutOutlined, InboxOutlined } from "@ant-design/icons";
+import { CarOutlined, FileTextOutlined, InboxOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { useMemo } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
@@ -17,6 +17,7 @@ export const PrivateLayout = () => {
   const selectedKey = useMemo(() => {
     if (location.pathname.startsWith("/cars")) return "cars";
     if (location.pathname.startsWith("/cargo")) return "cargo";
+    if (location.pathname.startsWith("/contracts")) return "contracts";
     return "";
   }, [location.pathname]);
 
@@ -27,7 +28,7 @@ export const PrivateLayout = () => {
   return (
     <Layout className="app-shell">
       <Header className="app-header">
-        <div className="app-header-brand">Ural</div>
+        <div className="app-header-brand">CarGo</div>
         <Menu
           theme="dark"
           mode="horizontal"
@@ -42,6 +43,11 @@ export const PrivateLayout = () => {
               key: "cargo",
               icon: <InboxOutlined />,
               label: <Link to="/cargo">Грузы</Link>,
+            },
+            {
+              key: "contracts",
+              icon: <FileTextOutlined />,
+              label: <Link to="/contracts">Контракты</Link>,
             },
           ]}
           className="app-header-menu"
