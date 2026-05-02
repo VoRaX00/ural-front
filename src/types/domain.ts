@@ -95,3 +95,53 @@ export interface CreateCargoPayload {
   status: string;
   fileIds?: number[];
 }
+
+export interface AvatarRequest {
+  photoId?: number;
+  photoThumbnailId?: number;
+  cropX?: number;
+  cropY?: number;
+  cropSize?: number;
+}
+
+export interface AvatarDto {
+  id: number;
+  photoId?: number;
+  photoThumbnailId?: number;
+  cropX?: number;
+  cropY?: number;
+  cropSize?: number;
+}
+
+export interface AvatarUploadMetadata {
+  cropX: number;
+  cropY: number;
+  cropSize: number;
+}
+
+export interface AvatarResponse {
+  photoId: number;
+  photoThumbnailId: number;
+  cropX: number;
+  cropY: number;
+  cropSize: number;
+}
+
+export interface UserDto {
+  uuid: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  patronymic?: string;
+  phoneNumber?: string;
+  avatar?: AvatarDto | null;
+}
+
+export interface UserRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  patronymic?: string;
+  phoneNumber?: string;
+  avatar?: AvatarRequest | null;
+}

@@ -1,15 +1,26 @@
-import { CarOutlined, FileTextOutlined, InboxOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Button, Layout, Menu, theme } from "antd";
-import { useMemo } from "react";
-import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import {
+  CarOutlined,
+  FileTextOutlined,
+  InboxOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { Avatar, Dropdown, Layout, Menu, theme } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getAccessToken } from "../api/client";
+import * as filesApi from "../api/files.api";
+import * as usersApi from "../api/users.api";
 import { useAuth } from "../auth/AuthProvider";
+import { getCurrentUserUuid } from "../auth/currentUser";
 
 const { Header, Content } = Layout;
 
 export const PrivateLayout = () => {
   const { logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -20,6 +31,34 @@ export const PrivateLayout = () => {
     if (location.pathname.startsWith("/contracts")) return "contracts";
     return "";
   }, [location.pathname]);
+
+  const loadAvatar = useCallback(async () => {
+    const uuid = getCurrentUserUuid();
+    if (!uuid) {
+      setAvatarUrl(null);
+      return;
+    }
+
+    try {
+      const user = await usersApi.getUserByUuid(uuid);
+      const avatarFileId = user.avatar?.photoThumbnailId ?? user.avatar?.photoId;
+      if (!avatarFileId) {
+        setAvatarUrl(null);
+        return;
+      }
+
+      const files = await filesApi.getFiles([avatarFileId]);
+      setAvatarUrl(files[0]?.url ?? null);
+    } catch {
+      setAvatarUrl(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAvatar();
+    window.addEventListener("profile-updated", loadAvatar);
+    return () => window.removeEventListener("profile-updated", loadAvatar);
+  }, [loadAvatar]);
 
   if (!getAccessToken()) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -52,14 +91,37 @@ export const PrivateLayout = () => {
           ]}
           className="app-header-menu"
         />
-        <Button
-          type="text"
-          icon={<LogoutOutlined />}
-          className="app-header-logout"
-          onClick={() => void logout()}
+        <Dropdown
+          trigger={["click"]}
+          placement="bottomRight"
+          menu={{
+            items: [
+              {
+                key: "profile",
+                icon: <UserOutlined />,
+                label: "Настроить профиль",
+              },
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Выйти",
+              },
+            ],
+            onClick: ({ key }) => {
+              if (key === "profile") {
+                navigate("/profile");
+                return;
+              }
+              if (key === "logout") {
+                void logout();
+              }
+            },
+          }}
         >
-          Выйти
-        </Button>
+          <button className="app-header-profile-btn" type="button" aria-label="Профиль">
+            <Avatar size={40} src={avatarUrl ?? undefined} icon={<UserOutlined />} />
+          </button>
+        </Dropdown>
       </Header>
       <Content className="app-content" style={{ background: colorBgContainer }}>
         <div className="app-content-inner">

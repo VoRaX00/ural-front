@@ -1,4 +1,5 @@
 import { api } from "./client";
+import type { AvatarResponse, AvatarUploadMetadata } from "../types/domain";
 
 export type FileType = "IMAGE" | "DOCUMENT";
 
@@ -29,5 +30,22 @@ export async function getFiles(ids: number[]): Promise<FileDto[]> {
   const unique = Array.from(new Set(ids));
   const query = unique.map((id) => `ids=${encodeURIComponent(id)}`).join("&");
   const res = await api.get<FileDto[]>(`/files?${query}`);
+  return res.data;
+}
+
+export async function uploadAvatar(args: {
+  file: File;
+  metadata: AvatarUploadMetadata;
+}): Promise<AvatarResponse> {
+  const form = new FormData();
+  form.append("file", args.file);
+  form.append(
+    "metadata",
+    new Blob([JSON.stringify(args.metadata)], { type: "application/json" })
+  );
+
+  const res = await api.post<AvatarResponse>("/files/avatar", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 }
