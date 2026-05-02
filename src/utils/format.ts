@@ -16,17 +16,19 @@ export function formatAddress(a: {
   region?: string;
   city?: string;
   street?: string;
+  house?: string;
   building?: string;
   apartment?: string;
   postalCode?: string;
 }): string {
+  const house = a.house ?? a.building;
   const parts = [
     a.postalCode,
     a.country,
     a.region,
     a.city,
     a.street,
-    a.building && `д. ${a.building}`,
+    house && `д. ${house}`,
     a.apartment && `кв. ${a.apartment}`,
   ].filter(Boolean);
   return parts.length ? parts.join(", ") : "—";

@@ -22,3 +22,8 @@ export async function getContractsPage(
   });
   return res.data;
 }
+
+export async function getContractById(id: number): Promise<ContractDto> {
+  const res = await api.get<ContractDto>(`/contracts/${id}`);
+  return res.data;
+}

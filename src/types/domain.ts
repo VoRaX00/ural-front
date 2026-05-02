@@ -9,8 +9,11 @@ export interface PaginatedResponse<T> {
 
 export interface ContractDto {
   id: number;
-  carId: number;
-  cargoId: number;
+  carId?: number;
+  cargoId?: number;
+  car?: CarDto;
+  cargo?: CargoDto;
+  status?: string;
   price: number;
   createdAt?: string;
   updatedAt?: string;
@@ -32,7 +35,7 @@ export interface CarDto {
   createdAt: string;
   updatedAt: string;
   vinNumber: string;
-  fileIds?: number[];
+  fileIds?: number[] | null;
 }
 
 /** Поля для POST /cars (без id, пользователя и меток времени). */
@@ -42,7 +45,7 @@ export interface CreateCarPayload {
   carModel: string;
   yearProduction: number;
   vinNumber: string;
-  fileIds?: number[];
+  fileIds?: number[] | null;
 }
 
 export interface AddressDto {
@@ -51,6 +54,7 @@ export interface AddressDto {
   region?: string;
   city?: string;
   street?: string;
+  house?: string;
   building?: string;
   apartment?: string;
   postalCode?: string;
@@ -74,7 +78,7 @@ export interface CargoDto {
   status: string;
   createdAt: string;
   updatedAt: string;
-  fileIds?: number[];
+  fileIds?: number[] | null;
 }
 
 export interface CreateCargoPayload {

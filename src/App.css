@@ -137,6 +137,35 @@
   margin-bottom: 0;
 }
 
+.contract-card .ant-card-head {
+  align-items: flex-start;
+}
+
+.contract-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.contract-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 28px;
+}
+
+.contract-card-section {
+  min-width: 0;
+}
+
+.contract-card-section-title {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
 .detail-page-toolbar {
   display: flex;
   align-items: center;
@@ -161,6 +190,79 @@
   overflow: hidden;
 }
 
+.contract-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.contract-detail-header .ant-tag {
+  margin-top: 8px;
+  margin-right: 0;
+}
+
+.contract-detail-panel {
+  margin-top: 18px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.contract-detail-panel:first-of-type {
+  margin-top: 0;
+}
+
+.contract-detail-panel .ant-typography {
+  margin-top: 0;
+}
+
+.contract-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 22px;
+  flex: 1;
+  min-width: 0;
+}
+
+.contract-detail-media-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.contract-detail-image {
+  width: 260px;
+  min-width: 260px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.contract-detail-field {
+  min-width: 0;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+}
+
+.contract-detail-field-wide {
+  grid-column: 1 / -1;
+}
+
+.contract-detail-field-value {
+  margin-top: 4px;
+  color: #1f2937;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .list-page .ant-btn-primary {
   border-radius: 10px;
 }
@@ -181,6 +283,41 @@
 
   .entity-card .ant-card-body {
     min-height: 0;
+  }
+
+  .contract-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contract-card .ant-card-extra {
+    padding-top: 8px;
+  }
+
+  .contract-detail-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contract-detail-header .ant-tag {
+    margin-top: 0;
+  }
+
+  .contract-detail-panel {
+    padding: 18px;
+  }
+
+  .contract-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contract-detail-media-layout {
+    flex-direction: column;
+  }
+
+  .contract-detail-image {
+    width: 100%;
+    min-width: 0;
+    max-height: 280px;
   }
 }
 
