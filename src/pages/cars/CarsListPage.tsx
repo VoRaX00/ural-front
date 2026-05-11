@@ -4,10 +4,13 @@ import {
   Card,
   Col,
   Empty,
+  Form,
+  Input,
   InputNumber,
   Modal,
   Pagination,
   Row,
+  Segmented,
   Select,
   Spin,
   Typography,
@@ -19,18 +22,45 @@ import * as carsApi from "../../api/cars.api";
 import * as cargoApi from "../../api/cargo.api";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
+import { getCurrentUserUuid } from "../../auth/currentUser";
 import type { CarDto, CargoDto } from "../../types/domain";
 import { formatDateTime } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
+type CarsFilterValues = {
+  carName?: string;
+  carModel?: string;
+  vinNumber?: string;
+  recordsScope?: "all" | "mine";
+  createdAtSort?: "desc" | "asc";
+};
+
+const normalizeFilters = (
+  values: CarsFilterValues,
+  currentUserUuid: string | null
+): Record<string, string> => {
+  const filters: Record<string, string> = {};
+  (["carName", "carModel", "vinNumber"] as const).forEach((key) => {
+    const value = values[key]?.trim();
+    if (value) filters[key] = value;
+  });
+  if (values.recordsScope === "mine" && currentUserUuid) {
+    filters.userUuid = currentUserUuid;
+  }
+  return filters;
+};
+
 export const CarsListPage = () => {
   const navigate = useNavigate();
+  const [filtersForm] = Form.useForm<CarsFilterValues>();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState<CarDto[]>([]);
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [createdAtSort, setCreatedAtSort] = useState<"desc" | "asc" | undefined>(undefined);
   const [fileUrlById, setFileUrlById] = useState<Record<number, string>>({});
   const [respondingCar, setRespondingCar] = useState<CarDto | null>(null);
   const [cargo, setCargo] = useState<CargoDto[]>([]);
@@ -43,7 +73,13 @@ export const CarsListPage = () => {
     let alive = true;
     setLoading(true);
     carsApi
-      .getCarsPage({ currentPageNumber: page, itemsOnPage: pageSize })
+      .getCarsPage({
+        currentPageNumber: page,
+        itemsOnPage: pageSize,
+        filters,
+        sorting: createdAtSort ? "createdAt" : undefined,
+        sortingValue: createdAtSort,
+      })
       .then(async (data) => {
         if (!alive) return;
         const nextItems = data.items ?? [];
@@ -88,10 +124,29 @@ export const CarsListPage = () => {
     return () => {
       alive = false;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, filters, createdAtSort]);
 
   const handlePageChange = (p: number) => {
     setPage(p);
+  };
+
+  const applyFilters = (values: CarsFilterValues) => {
+    const currentUserUuid = getCurrentUserUuid();
+    if (values.recordsScope === "mine" && !currentUserUuid) {
+      message.error("Не удалось определить пользователя из токена");
+      return;
+    }
+
+    setFilters(normalizeFilters(values, currentUserUuid));
+    setCreatedAtSort(values.createdAtSort);
+    setPage(1);
+  };
+
+  const resetFilters = () => {
+    filtersForm.resetFields();
+    setFilters({});
+    setCreatedAtSort(undefined);
+    setPage(1);
   };
 
   const openRespondModal = async (car: CarDto) => {
@@ -147,6 +202,65 @@ export const CarsListPage = () => {
           Новый транспорт
         </Button>
       </div>
+
+      <Card className="list-filter-card">
+        <Form<CarsFilterValues>
+          form={filtersForm}
+          layout="vertical"
+          onFinish={applyFilters}
+          initialValues={{ recordsScope: "all" }}
+          autoComplete="off"
+        >
+          <Row gutter={[12, 12]} align="bottom">
+            <Col xs={24} sm={12} lg={5}>
+              <Form.Item name="carName" label="Название">
+                <Input allowClear placeholder="carName" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={5}>
+              <Form.Item name="carModel" label="Модель">
+                <Input allowClear placeholder="carModel" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={5}>
+              <Form.Item name="vinNumber" label="VIN">
+                <Input allowClear placeholder="vinNumber" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={5}>
+              <Form.Item name="recordsScope" label="Записи">
+                <Segmented
+                  block
+                  options={[
+                    { value: "all", label: "Все записи" },
+                    { value: "mine", label: "Мои записи" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={4}>
+              <Form.Item name="createdAtSort" label="Создан">
+                <Select
+                  allowClear
+                  placeholder="Сортировка"
+                  options={[
+                    { value: "desc", label: "Сначала новые" },
+                    { value: "asc", label: "Сначала старые" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24}>
+              <div className="list-filter-actions">
+                <Button type="primary" htmlType="submit">
+                  Применить
+                </Button>
+                <Button onClick={resetFilters}>Сбросить</Button>
+              </div>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
 
       <Spin spinning={loading}>
         {!loading && items.length === 0 ? (
