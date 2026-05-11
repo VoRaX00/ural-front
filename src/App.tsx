@@ -4,9 +4,11 @@ import { PrivateLayout } from "./layout/PrivateLayout";
 import "./App.css";
 import { CarCreatePage } from "./pages/cars/CarCreatePage";
 import { CarDetailPage } from "./pages/cars/CarDetailPage";
+import { CarEditPage } from "./pages/cars/CarEditPage";
 import { CarsListPage } from "./pages/cars/CarsListPage";
 import { CargoCreatePage } from "./pages/cargo/CargoCreatePage";
 import { CargoDetailPage } from "./pages/cargo/CargoDetailPage";
+import { CargoEditPage } from "./pages/cargo/CargoEditPage";
 import { CargoListPage } from "./pages/cargo/CargoListPage";
 import { ContractDetailPage } from "./pages/contracts/ContractDetailPage";
 import { ContractsListPage } from "./pages/contracts/ContractsListPage";
@@ -24,9 +26,11 @@ function App() {
           <Route path="/" element={<PrivateLayout />}>
             <Route index element={<Navigate to="/cars" replace />} />
             <Route path="cars/new" element={<CarCreatePage />} />
+            <Route path="cars/:id/edit" element={<CarEditPage />} />
             <Route path="cars/:id" element={<CarDetailPage />} />
             <Route path="cars" element={<CarsListPage />} />
             <Route path="cargo/new" element={<CargoCreatePage />} />
+            <Route path="cargo/:id/edit" element={<CargoEditPage />} />
             <Route path="cargo/:id" element={<CargoDetailPage />} />
             <Route path="cargo" element={<CargoListPage />} />
             <Route path="contracts/:id" element={<ContractDetailPage />} />

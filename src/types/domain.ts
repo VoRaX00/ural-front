@@ -30,6 +30,9 @@ export interface CarDto {
   carType: string;
   carName: string;
   carModel: string;
+  bodyType?: string[] | null;
+  loadingType?: string[] | null;
+  loadCapacity?: number | null;
   yearProduction: number;
   userUuid: string;
   createdAt: string;
@@ -43,6 +46,9 @@ export interface CreateCarPayload {
   carType: string;
   carName: string;
   carModel: string;
+  bodyType: string[];
+  loadingType: string[];
+  loadCapacity?: number | null;
   yearProduction: number;
   vinNumber: string;
   fileIds?: number[] | null;
@@ -66,6 +72,9 @@ export interface CargoDto {
   id: number;
   userUuid: string;
   name: string;
+  bodyTypes: string[];
+  loadingTypes: string[];
+  unloadingTypes: string[];
   length: number;
   width: number;
   height: number;
@@ -75,7 +84,6 @@ export interface CargoDto {
   unloadingPlace: AddressDto;
   price: number;
   comment?: string;
-  status: string;
   createdAt: string;
   updatedAt: string;
   fileIds?: number[] | null;
@@ -83,6 +91,9 @@ export interface CargoDto {
 
 export interface CreateCargoPayload {
   name: string;
+  bodyTypes: string[];
+  loadingTypes: string[];
+  unloadingTypes: string[];
   length: number;
   width: number;
   height: number;
@@ -92,7 +103,6 @@ export interface CreateCargoPayload {
   unloadingPlace: AddressDto;
   price: number;
   comment?: string;
-  status: string;
   fileIds?: number[];
 }
 

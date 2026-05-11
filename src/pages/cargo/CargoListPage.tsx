@@ -1,13 +1,17 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
   Col,
   Empty,
+  Form,
+  Input,
   InputNumber,
   Modal,
   Pagination,
+  Popconfirm,
   Row,
+  Segmented,
   Select,
   Spin,
   Typography,
@@ -19,18 +23,50 @@ import * as carsApi from "../../api/cars.api";
 import * as cargoApi from "../../api/cargo.api";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
+import { getCurrentUserUuid } from "../../auth/currentUser";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto, CargoDto } from "../../types/domain";
-import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
+import { formatAddress, formatDecimal } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
+type CargoFilterValues = {
+  name?: string;
+  recordsScope?: "all" | "mine";
+  length?: number;
+  width?: number;
+  height?: number;
+  volume?: number;
+  weight?: number;
+  price?: number;
+};
+
+const normalizeFilters = (
+  values: CargoFilterValues,
+  currentUserUuid: string | null
+): Record<string, string> => {
+  const filters: Record<string, string> = {};
+  const name = values.name?.trim();
+  if (name) filters.name = name;
+  if (values.recordsScope === "mine" && currentUserUuid) {
+    filters.userUuid = currentUserUuid;
+  }
+  (["length", "width", "height", "volume", "weight", "price"] as const).forEach((key) => {
+    const value = values[key];
+    if (typeof value === "number") filters[key] = String(value);
+  });
+  return filters;
+};
+
 export const CargoListPage = () => {
   const navigate = useNavigate();
+  const [filtersForm] = Form.useForm<CargoFilterValues>();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState<CargoDto[]>([]);
+  const [filters, setFilters] = useState<Record<string, string>>({});
   const [fileUrlById, setFileUrlById] = useState<Record<number, string>>({});
   const [respondingCargo, setRespondingCargo] = useState<CargoDto | null>(null);
   const [cars, setCars] = useState<CarDto[]>([]);
@@ -38,12 +74,14 @@ export const CargoListPage = () => {
   const [selectedCarId, setSelectedCarId] = useState<number | undefined>(undefined);
   const [contractPrice, setContractPrice] = useState<number | undefined>(undefined);
   const [creatingContract, setCreatingContract] = useState(false);
+  const [deletingCargoId, setDeletingCargoId] = useState<number | null>(null);
+  const currentUserUuid = getCurrentUserUuid();
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
     cargoApi
-      .getCargoPage({ currentPageNumber: page, itemsOnPage: pageSize })
+      .getCargoPage({ currentPageNumber: page, itemsOnPage: pageSize, filters })
       .then(async (data) => {
         if (!alive) return;
         const nextItems = data.items ?? [];
@@ -93,7 +131,30 @@ export const CargoListPage = () => {
     return () => {
       alive = false;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, filters]);
+
+  const applyFilters = (values: CargoFilterValues) => {
+    if (values.recordsScope === "mine" && !currentUserUuid) {
+      message.error("Не удалось определить пользователя из токена");
+      return;
+    }
+
+    setFilters(normalizeFilters(values, currentUserUuid));
+    setPage(1);
+  };
+
+  const applyRecordsScopeFilter = (recordsScope: CargoFilterValues["recordsScope"]) => {
+    applyFilters({
+      ...filtersForm.getFieldsValue(),
+      recordsScope,
+    });
+  };
+
+  const resetFilters = () => {
+    filtersForm.resetFields();
+    setFilters({});
+    setPage(1);
+  };
 
   const openRespondModal = async (cargo: CargoDto) => {
     setRespondingCargo(cargo);
@@ -138,6 +199,20 @@ export const CargoListPage = () => {
     }
   };
 
+  const deleteCargo = async (cargo: CargoDto) => {
+    setDeletingCargoId(cargo.id);
+    try {
+      await cargoApi.deleteCargo(cargo.id);
+      setItems((prev) => prev.filter((item) => item.id !== cargo.id));
+      setTotal((prev) => Math.max(0, prev - 1));
+      message.success("Груз удалён");
+    } catch {
+      message.error("Не удалось удалить груз");
+    } finally {
+      setDeletingCargoId(null);
+    }
+  };
+
   return (
     <div className="list-page">
       <div className="list-page-toolbar">
@@ -148,6 +223,74 @@ export const CargoListPage = () => {
           Новый груз
         </Button>
       </div>
+
+      <Card className="list-filter-card">
+        <Form<CargoFilterValues>
+          form={filtersForm}
+          layout="vertical"
+          onFinish={applyFilters}
+          initialValues={{ recordsScope: "all" }}
+          autoComplete="off"
+        >
+          <Row gutter={[12, 12]} align="bottom">
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="name" label="Название">
+                <Input allowClear placeholder="Введите название" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="recordsScope" label="Записи">
+                <Segmented
+                  block
+                  onChange={(value) => applyRecordsScopeFilter(value as CargoFilterValues["recordsScope"])}
+                  options={[
+                    { value: "all", label: "Все записи" },
+                    { value: "mine", label: "Мои записи" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="length" label="Длина">
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="width" label="Ширина">
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="height" label="Высота">
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="volume" label="Объём">
+                <InputNumber min={0} step={0.01} addonAfter="м³" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="weight" label="Вес">
+                <InputNumber min={0} step={0.01} addonAfter="кг" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={4}>
+              <Form.Item name="price" label="Цена">
+                <InputNumber min={0} step={0.01} addonAfter="руб" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24}>
+              <div className="list-filter-actions">
+                <Button type="primary" htmlType="submit">
+                  Применить
+                </Button>
+                <Button onClick={resetFilters}>Сбросить</Button>
+              </div>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
 
       <Spin spinning={loading}>
         {!loading && items.length === 0 ? (
@@ -184,8 +327,22 @@ export const CargoListPage = () => {
                     )}
                     <div style={{ flex: 1 }}>
                       <div className="entity-card-meta">
-                        <Text type="secondary">Тип</Text>
-                        <Text>{c.status || "—"}</Text>
+                        <Text type="secondary">Кузов</Text>
+                        <Text ellipsis={{ tooltip: formatBodyTypes(c.bodyTypes) }}>
+                          {formatBodyTypes(c.bodyTypes)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Погрузка</Text>
+                        <Text ellipsis={{ tooltip: formatLoadingTypes(c.loadingTypes) }}>
+                          {formatLoadingTypes(c.loadingTypes)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Разгрузка</Text>
+                        <Text ellipsis={{ tooltip: formatLoadingTypes(c.unloadingTypes) }}>
+                          {formatLoadingTypes(c.unloadingTypes)}
+                        </Text>
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Вес</Text>
@@ -211,19 +368,51 @@ export const CargoListPage = () => {
                           {formatAddress(c.unloadingPlace ?? {})}
                         </Text>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Обновлён</Text>
-                        <Text>{formatDateTime(c.updatedAt)}</Text>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <Button
+                          type="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void openRespondModal(c);
+                          }}
+                        >
+                          Откликнуться
+                        </Button>
+                        {currentUserUuid && c.userUuid === currentUserUuid && (
+                          <>
+                            <Button
+                              icon={<EditOutlined />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/cargo/${c.id}/edit`);
+                              }}
+                            >
+                              Редактировать
+                            </Button>
+                            <Popconfirm
+                              title="Удалить груз?"
+                              description="Это действие нельзя отменить"
+                              okText="Удалить"
+                              cancelText="Отмена"
+                              okButtonProps={{ danger: true, loading: deletingCargoId === c.id }}
+                              onConfirm={(e) => {
+                                e?.stopPropagation();
+                                void deleteCargo(c);
+                              }}
+                              onCancel={(e) => e?.stopPropagation()}
+                            >
+                              <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                loading={deletingCargoId === c.id}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Удалить
+                              </Button>
+                            </Popconfirm>
+                          </>
+                        )}
                       </div>
-                      <Button
-                        type="primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void openRespondModal(c);
-                        }}
-                      >
-                        Откликнуться
-                      </Button>
                     </div>
                   </div>
                 </Card>

@@ -219,6 +219,14 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
+.cargo-form-card {
+  max-width: 1040px;
+}
+
+.car-form-card {
+  max-width: 1040px;
+}
+
 .profile-page-header {
   display: flex;
   align-items: center;

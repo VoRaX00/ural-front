@@ -1,10 +1,16 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Card, Form, Input, InputNumber, Typography, Upload, message } from "antd";
+import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Typography, Upload, message } from "antd";
 import type { RcFile } from "antd/es/upload";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as cargoApi from "../../api/cargo.api";
 import * as filesApi from "../../api/files.api";
+import {
+  bodyTypeOptions,
+  getBodyTypeLabel,
+  getLoadingTypeLabel,
+  loadingTypeOptions,
+} from "../../config/cargoOptions";
 import type { CreateCargoPayload } from "../../types/domain";
 
 const addressRules = [{ required: true, message: "Заполните поле" }];
@@ -30,6 +36,9 @@ export const CargoCreatePage = () => {
 
       const created = await cargoApi.createCargo({
         ...values,
+        bodyTypes: (values.bodyTypes ?? []).map(getBodyTypeLabel),
+        loadingTypes: (values.loadingTypes ?? []).map(getLoadingTypeLabel),
+        unloadingTypes: (values.unloadingTypes ?? []).map(getLoadingTypeLabel),
         comment: values.comment?.trim() || undefined,
         fileIds,
       });
@@ -55,7 +64,7 @@ export const CargoCreatePage = () => {
 
       <Typography.Title level={3}>Новый груз</Typography.Title>
 
-      <Card className="form-card">
+      <Card className="form-card cargo-form-card">
         <Form<CreateCargoPayload>
           layout="vertical"
           onFinish={onFinish}
@@ -64,75 +73,160 @@ export const CargoCreatePage = () => {
           <Form.Item name="name" label="Название" rules={[{ required: true, message: "Укажите название" }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="status" label="Тип груза" rules={[{ required: true, message: "Укажите тип" }]}>
-            <Input />
+          <Form.Item
+            name="bodyTypes"
+            label="Тип кузова"
+            rules={[{ type: "array", min: 1, required: true, message: "Выберите тип кузова" }]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="Выберите типы кузова"
+              options={bodyTypeOptions}
+              optionFilterProp="label"
+            />
+          </Form.Item>
+          <Form.Item
+            name="loadingTypes"
+            label="Тип погрузки"
+            rules={[{ type: "array", min: 1, required: true, message: "Выберите тип погрузки" }]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="Выберите типы погрузки"
+              options={loadingTypeOptions}
+              optionFilterProp="label"
+            />
+          </Form.Item>
+          <Form.Item
+            name="unloadingTypes"
+            label="Тип разгрузки"
+            rules={[{ type: "array", min: 1, required: true, message: "Выберите тип разгрузки" }]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="Выберите типы разгрузки"
+              options={loadingTypeOptions}
+              optionFilterProp="label"
+            />
           </Form.Item>
 
           <Typography.Title level={5}>Габариты и масса</Typography.Title>
-          <Form.Item name="length" label="Длина" rules={[{ required: true, message: "Укажите длину" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="width" label="Ширина" rules={[{ required: true, message: "Укажите ширину" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="height" label="Высота" rules={[{ required: true, message: "Укажите высоту" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="volume" label="Объём" rules={[{ required: true, message: "Укажите объём" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="weight" label="Вес" rules={[{ required: true, message: "Укажите вес" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="price" label="Цена" rules={[{ required: true, message: "Укажите цену" }]}>
-            <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="length" label="Длина" rules={[{ required: true, message: "Укажите длину" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="width" label="Ширина" rules={[{ required: true, message: "Укажите ширину" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="height" label="Высота" rules={[{ required: true, message: "Укажите высоту" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="м" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="volume" label="Объём" rules={[{ required: true, message: "Укажите объём" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="м³" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="weight" label="Вес" rules={[{ required: true, message: "Укажите вес" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="кг" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item name="price" label="Цена" rules={[{ required: true, message: "Укажите цену" }]}>
+                <InputNumber min={0} step={0.01} addonAfter="руб" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Typography.Title level={5}>Адрес погрузки</Typography.Title>
-          <Form.Item name={["loadingPlace", "country"]} label="Страна" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "region"]} label="Регион">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "city"]} label="Город" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "street"]} label="Улица" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "building"]} label="Дом">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "apartment"]} label="Квартира / офис">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["loadingPlace", "postalCode"]} label="Индекс">
-            <Input />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item name={["loadingPlace", "country"]} label="Страна" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name={["loadingPlace", "region"]} label="Регион">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name={["loadingPlace", "city"]} label="Город" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name={["loadingPlace", "street"]} label="Улица" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["loadingPlace", "building"]} label="Дом">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["loadingPlace", "apartment"]} label="Квартира / офис">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["loadingPlace", "postalCode"]} label="Индекс">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Typography.Title level={5}>Адрес разгрузки</Typography.Title>
-          <Form.Item name={["unloadingPlace", "country"]} label="Страна" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "region"]} label="Регион">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "city"]} label="Город" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "street"]} label="Улица" rules={addressRules}>
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "building"]} label="Дом">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "apartment"]} label="Квартира / офис">
-            <Input />
-          </Form.Item>
-          <Form.Item name={["unloadingPlace", "postalCode"]} label="Индекс">
-            <Input />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item name={["unloadingPlace", "country"]} label="Страна" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name={["unloadingPlace", "region"]} label="Регион">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name={["unloadingPlace", "city"]} label="Город" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name={["unloadingPlace", "street"]} label="Улица" rules={addressRules}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["unloadingPlace", "building"]} label="Дом">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["unloadingPlace", "apartment"]} label="Квартира / офис">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8} md={4}>
+              <Form.Item name={["unloadingPlace", "postalCode"]} label="Индекс">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item name="comment" label="Комментарий">
             <Input.TextArea rows={3} />

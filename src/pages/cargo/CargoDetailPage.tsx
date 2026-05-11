@@ -1,8 +1,10 @@
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Spin, Typography, message } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as cargoApi from "../../api/cargo.api";
+import { getCurrentUserUuid } from "../../auth/currentUser";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CargoDto } from "../../types/domain";
 import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
 
@@ -11,6 +13,7 @@ export const CargoDetailPage = () => {
   const navigate = useNavigate();
   const [cargo, setCargo] = useState<CargoDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const currentUserUuid = getCurrentUserUuid();
 
   const id = useMemo(() => {
     if (!idParam) return NaN;
@@ -52,6 +55,11 @@ export const CargoDetailPage = () => {
         <Typography.Link>
           <Link to="/cargo">К списку грузов</Link>
         </Typography.Link>
+        {cargo && currentUserUuid && cargo.userUuid === currentUserUuid && (
+          <Button icon={<EditOutlined />} onClick={() => navigate(`/cargo/${cargo.id}/edit`)}>
+            Редактировать
+          </Button>
+        )}
       </div>
 
       <Spin spinning={loading}>
@@ -62,7 +70,13 @@ export const CargoDetailPage = () => {
             </Typography.Title>
             <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="middle">
               <Descriptions.Item label="ID">{cargo.id}</Descriptions.Item>
-              <Descriptions.Item label="Тип">{cargo.status}</Descriptions.Item>
+              <Descriptions.Item label="Тип кузова">{formatBodyTypes(cargo.bodyTypes)}</Descriptions.Item>
+              <Descriptions.Item label="Тип погрузки">
+                {formatLoadingTypes(cargo.loadingTypes)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Тип разгрузки">
+                {formatLoadingTypes(cargo.unloadingTypes)}
+              </Descriptions.Item>
               <Descriptions.Item label="Пользователь (UUID)">{cargo.userUuid}</Descriptions.Item>
               <Descriptions.Item label="Длина">{formatDecimal(cargo.length)}</Descriptions.Item>
               <Descriptions.Item label="Ширина">{formatDecimal(cargo.width)}</Descriptions.Item>

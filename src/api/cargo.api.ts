@@ -21,3 +21,12 @@ export async function createCargo(payload: CreateCargoPayload): Promise<CargoDto
   const res = await api.post<CargoDto>("/cargo", payload);
   return res.data;
 }
+
+export async function updateCargo(id: number, payload: CreateCargoPayload): Promise<CargoDto> {
+  const res = await api.put<CargoDto>(`/cargo/${id}`, payload);
+  return res.data;
+}
+
+export async function deleteCargo(id: number): Promise<void> {
+  await api.delete(`/cargo/${id}`);
+}

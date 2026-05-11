@@ -1,16 +1,20 @@
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Spin, Typography, message } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as carsApi from "../../api/cars.api";
+import { getCurrentUserUuid } from "../../auth/currentUser";
+import { formatCarType } from "../../config/carOptions";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto } from "../../types/domain";
-import { formatDateTime } from "../../utils/format";
+import { formatDateTime, formatDecimal } from "../../utils/format";
 
 export const CarDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [car, setCar] = useState<CarDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const currentUserUuid = getCurrentUserUuid();
 
   useEffect(() => {
     if (!id) {
@@ -46,6 +50,11 @@ export const CarDetailPage = () => {
         <Typography.Link>
           <Link to="/cars">К списку транспорта</Link>
         </Typography.Link>
+        {car && currentUserUuid && car.userUuid === currentUserUuid && (
+          <Button icon={<EditOutlined />} onClick={() => navigate(`/cars/${car.id}/edit`)}>
+            Редактировать
+          </Button>
+        )}
       </div>
 
       <Spin spinning={loading}>
@@ -56,9 +65,16 @@ export const CarDetailPage = () => {
             </Typography.Title>
             <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="middle">
               <Descriptions.Item label="ID">{car.id}</Descriptions.Item>
-              <Descriptions.Item label="Тип">{car.carType}</Descriptions.Item>
+              <Descriptions.Item label="Тип">{formatCarType(car.carType)}</Descriptions.Item>
               <Descriptions.Item label="Название">{car.carName}</Descriptions.Item>
               <Descriptions.Item label="Модель">{car.carModel}</Descriptions.Item>
+              <Descriptions.Item label="Тип кузова">{formatBodyTypes(car.bodyType)}</Descriptions.Item>
+              <Descriptions.Item label="Тип загрузки">
+                {formatLoadingTypes(car.loadingType)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Грузоподъёмность">
+                {formatDecimal(car.loadCapacity)}
+              </Descriptions.Item>
               <Descriptions.Item label="Год выпуска">{car.yearProduction}</Descriptions.Item>
               <Descriptions.Item label="VIN">{car.vinNumber}</Descriptions.Item>
               <Descriptions.Item label="Пользователь (UUID)">{car.userUuid}</Descriptions.Item>

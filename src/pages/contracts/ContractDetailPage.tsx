@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
+import { formatCarType } from "../../config/carOptions";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
 import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
 import {
@@ -150,7 +152,15 @@ export const ContractDetailPage = () => {
                 <div className="contract-detail-grid">
                   <DetailField label="ID" value={contract.cargo?.id ?? contract.cargoId ?? "—"} />
                   <DetailField label="Название" value={getContractCargoTitle(contract)} />
-                  <DetailField label="Статус" value={contract.cargo?.status || "—"} />
+                  <DetailField label="Тип кузова" value={formatBodyTypes(contract.cargo?.bodyTypes)} />
+                  <DetailField
+                    label="Тип погрузки"
+                    value={formatLoadingTypes(contract.cargo?.loadingTypes)}
+                  />
+                  <DetailField
+                    label="Тип разгрузки"
+                    value={formatLoadingTypes(contract.cargo?.unloadingTypes)}
+                  />
                   <DetailField label="Цена" value={formatDecimal(contract.cargo?.price)} />
                   <DetailField label="Длина" value={formatDecimal(contract.cargo?.length)} />
                   <DetailField label="Ширина" value={formatDecimal(contract.cargo?.width)} />
@@ -185,7 +195,16 @@ export const ContractDetailPage = () => {
                 <div className="contract-detail-grid">
                   <DetailField label="ID" value={contract.car?.id ?? contract.carId ?? "—"} />
                   <DetailField label="Авто" value={getContractCarTitle(contract)} />
-                  <DetailField label="Тип" value={contract.car?.carType || "—"} />
+                  <DetailField label="Тип" value={formatCarType(contract.car?.carType)} />
+                  <DetailField label="Тип кузова" value={formatBodyTypes(contract.car?.bodyType)} />
+                  <DetailField
+                    label="Тип загрузки"
+                    value={formatLoadingTypes(contract.car?.loadingType)}
+                  />
+                  <DetailField
+                    label="Грузоподъёмность"
+                    value={formatDecimal(contract.car?.loadCapacity)}
+                  />
                   <DetailField label="Год выпуска" value={contract.car?.yearProduction ?? "—"} />
                   <DetailField label="VIN" value={contract.car?.vinNumber || "—"} />
                   <DetailField label="Создан" value={formatDateTime(contract.car?.createdAt)} />

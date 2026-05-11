@@ -56,7 +56,7 @@ export const RegisterPage = () => {
           >
             <Input
               prefix={<MailOutlined />}
-              placeholder="email@example.com"
+              placeholder="Введите email"
               autoComplete="email"
             />
           </Form.Item>

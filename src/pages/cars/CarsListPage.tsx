@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -9,6 +9,7 @@ import {
   InputNumber,
   Modal,
   Pagination,
+  Popconfirm,
   Row,
   Segmented,
   Select,
@@ -23,8 +24,10 @@ import * as cargoApi from "../../api/cargo.api";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
+import { formatCarType } from "../../config/carOptions";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto, CargoDto } from "../../types/domain";
-import { formatDateTime } from "../../utils/format";
+import { formatDecimal } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
@@ -68,6 +71,8 @@ export const CarsListPage = () => {
   const [selectedCargoId, setSelectedCargoId] = useState<number | undefined>(undefined);
   const [contractPrice, setContractPrice] = useState<number | undefined>(undefined);
   const [creatingContract, setCreatingContract] = useState(false);
+  const [deletingCarId, setDeletingCarId] = useState<string | null>(null);
+  const currentUserUuid = getCurrentUserUuid();
 
   useEffect(() => {
     let alive = true;
@@ -142,6 +147,13 @@ export const CarsListPage = () => {
     setPage(1);
   };
 
+  const applyRecordsScopeFilter = (recordsScope: CarsFilterValues["recordsScope"]) => {
+    applyFilters({
+      ...filtersForm.getFieldsValue(),
+      recordsScope,
+    });
+  };
+
   const resetFilters = () => {
     filtersForm.resetFields();
     setFilters({});
@@ -192,6 +204,20 @@ export const CarsListPage = () => {
     }
   };
 
+  const deleteCar = async (car: CarDto) => {
+    setDeletingCarId(car.id);
+    try {
+      await carsApi.deleteCar(car.id);
+      setItems((prev) => prev.filter((item) => item.id !== car.id));
+      setTotal((prev) => Math.max(0, prev - 1));
+      message.success("Транспорт удалён");
+    } catch {
+      message.error("Не удалось удалить транспорт");
+    } finally {
+      setDeletingCarId(null);
+    }
+  };
+
   return (
     <div className="list-page">
       <div className="list-page-toolbar">
@@ -214,23 +240,24 @@ export const CarsListPage = () => {
           <Row gutter={[12, 12]} align="bottom">
             <Col xs={24} sm={12} lg={5}>
               <Form.Item name="carName" label="Название">
-                <Input allowClear placeholder="carName" />
+                <Input allowClear placeholder="Введите название" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={5}>
               <Form.Item name="carModel" label="Модель">
-                <Input allowClear placeholder="carModel" />
+                <Input allowClear placeholder="Введите модель" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={5}>
               <Form.Item name="vinNumber" label="VIN">
-                <Input allowClear placeholder="vinNumber" />
+                <Input allowClear placeholder="Введите VIN" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={5}>
               <Form.Item name="recordsScope" label="Записи">
                 <Segmented
                   block
+                  onChange={(value) => applyRecordsScopeFilter(value as CarsFilterValues["recordsScope"])}
                   options={[
                     { value: "all", label: "Все записи" },
                     { value: "mine", label: "Мои записи" },
@@ -301,7 +328,23 @@ export const CarsListPage = () => {
                     <div style={{ flex: 1 }}>
                       <div className="entity-card-meta">
                         <Text type="secondary">Тип</Text>
-                        <Text>{car.carType || "—"}</Text>
+                        <Text>{formatCarType(car.carType)}</Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Кузов</Text>
+                        <Text ellipsis={{ tooltip: formatBodyTypes(car.bodyType) }}>
+                          {formatBodyTypes(car.bodyType)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Загрузка</Text>
+                        <Text ellipsis={{ tooltip: formatLoadingTypes(car.loadingType) }}>
+                          {formatLoadingTypes(car.loadingType)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Грузоподъёмность</Text>
+                        <Text>{formatDecimal(car.loadCapacity)}</Text>
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Год</Text>
@@ -311,19 +354,51 @@ export const CarsListPage = () => {
                         <Text type="secondary">VIN</Text>
                         <Text code>{car.vinNumber || "—"}</Text>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Обновлён</Text>
-                        <Text>{formatDateTime(car.updatedAt)}</Text>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <Button
+                          type="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void openRespondModal(car);
+                          }}
+                        >
+                          Откликнуться
+                        </Button>
+                        {currentUserUuid && car.userUuid === currentUserUuid && (
+                          <>
+                            <Button
+                              icon={<EditOutlined />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/cars/${car.id}/edit`);
+                              }}
+                            >
+                              Редактировать
+                            </Button>
+                            <Popconfirm
+                              title="Удалить транспорт?"
+                              description="Это действие нельзя отменить"
+                              okText="Удалить"
+                              cancelText="Отмена"
+                              okButtonProps={{ danger: true, loading: deletingCarId === car.id }}
+                              onConfirm={(e) => {
+                                e?.stopPropagation();
+                                void deleteCar(car);
+                              }}
+                              onCancel={(e) => e?.stopPropagation()}
+                            >
+                              <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                loading={deletingCarId === car.id}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Удалить
+                              </Button>
+                            </Popconfirm>
+                          </>
+                        )}
                       </div>
-                      <Button
-                        type="primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void openRespondModal(car);
-                        }}
-                      >
-                        Откликнуться
-                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -370,7 +445,7 @@ export const CarsListPage = () => {
             onChange={setSelectedCargoId}
             options={cargo.map((c) => ({
               value: c.id,
-              label: `${c.name} (${c.status})`,
+              label: `${c.name} (${formatBodyTypes(c.bodyTypes)})`,
             }))}
             optionFilterProp="label"
           />

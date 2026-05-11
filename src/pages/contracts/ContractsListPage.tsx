@@ -2,6 +2,8 @@ import { Card, Col, Empty, Pagination, Row, Spin, Tag, Typography, message } fro
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as contractsApi from "../../api/contracts.api";
+import { formatCarType } from "../../config/carOptions";
+import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
 import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
 import {
@@ -106,8 +108,10 @@ export const ContractsListPage = () => {
                         Груз
                       </Text>
                       <div className="entity-card-meta">
-                        <Text type="secondary">Статус груза</Text>
-                        <Text>{c.cargo?.status || "—"}</Text>
+                        <Text type="secondary">Тип кузова</Text>
+                        <Text ellipsis={{ tooltip: formatBodyTypes(c.cargo?.bodyTypes) }}>
+                          {formatBodyTypes(c.cargo?.bodyTypes)}
+                        </Text>
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Габариты</Text>
@@ -139,7 +143,23 @@ export const ContractsListPage = () => {
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Тип</Text>
-                        <Text>{c.car?.carType || "—"}</Text>
+                        <Text>{formatCarType(c.car?.carType)}</Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Кузов</Text>
+                        <Text ellipsis={{ tooltip: formatBodyTypes(c.car?.bodyType) }}>
+                          {formatBodyTypes(c.car?.bodyType)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Загрузка</Text>
+                        <Text ellipsis={{ tooltip: formatLoadingTypes(c.car?.loadingType) }}>
+                          {formatLoadingTypes(c.car?.loadingType)}
+                        </Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Грузоподъёмность</Text>
+                        <Text>{formatDecimal(c.car?.loadCapacity)}</Text>
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Год</Text>

@@ -21,3 +21,12 @@ export async function createCar(payload: CreateCarPayload): Promise<CarDto> {
   const res = await api.post<CarDto>("/cars", payload);
   return res.data;
 }
+
+export async function updateCar(id: string, payload: CreateCarPayload): Promise<CarDto> {
+  const res = await api.put<CarDto>(`/cars/${encodeURIComponent(id)}`, payload);
+  return res.data;
+}
+
+export async function deleteCar(id: string): Promise<void> {
+  await api.delete(`/cars/${encodeURIComponent(id)}`);
+}
