@@ -7,7 +7,7 @@ import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatCarType } from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto } from "../../types/domain";
-import { formatDateTime, formatDecimal } from "../../utils/format";
+import { formatDateTime, formatTonnesFromKg } from "../../utils/format";
 
 export const CarDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,7 +73,7 @@ export const CarDetailPage = () => {
                 {formatLoadingTypes(car.loadingType)}
               </Descriptions.Item>
               <Descriptions.Item label="Грузоподъёмность">
-                {formatDecimal(car.loadCapacity)}
+                {formatTonnesFromKg(car.loadCapacity)}
               </Descriptions.Item>
               <Descriptions.Item label="Год выпуска">{car.yearProduction}</Descriptions.Item>
               <Descriptions.Item label="VIN">{car.vinNumber}</Descriptions.Item>

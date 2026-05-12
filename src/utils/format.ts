@@ -38,3 +38,13 @@ export function formatDecimal(n: number | undefined | null): string {
   if (n === undefined || n === null || Number.isNaN(n)) return "—";
   return String(n);
 }
+
+export function formatTonnesFromKg(n: number | undefined | null): string {
+  if (n === undefined || n === null || Number.isNaN(n)) return "—";
+  return `${formatDecimal(n / 1000)} т`;
+}
+
+export function formatKgAndTonnes(n: number | undefined | null): string {
+  if (n === undefined || n === null || Number.isNaN(n)) return "—";
+  return `${formatDecimal(n)} кг / ${formatDecimal(n / 1000)} т`;
+}

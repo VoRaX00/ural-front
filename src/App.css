@@ -172,6 +172,143 @@
   margin-bottom: 0;
 }
 
+.entity-card-improved {
+  min-height: 0;
+}
+
+.entity-card-improved .ant-card-body {
+  min-height: 0;
+  padding: 18px;
+}
+
+.entity-card-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.entity-card-media {
+  width: 180px;
+  height: 148px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.entity-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+
+.entity-card-media-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+}
+
+.entity-card-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entity-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entity-card-heading {
+  min-width: 0;
+}
+
+.entity-card-name {
+  margin: 0 0 3px !important;
+  line-height: 1.25 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-card-tag-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entity-card-tag-row .ant-tag {
+  max-width: 100%;
+  margin-inline-end: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entity-card-info-grid,
+.entity-card-route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.entity-card-route-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.entity-card-info-item {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  background: #fbfdff;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.entity-card-info-item .ant-typography {
+  min-width: 0;
+}
+
+.entity-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.entity-card-header-row .ant-tag {
+  margin-inline-end: 0;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .entity-card-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .entity-card-media {
+    width: 100%;
+    height: 180px;
+  }
+
+  .entity-card-info-grid,
+  .entity-card-route-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .contract-card .ant-card-head {
   align-items: flex-start;
 }

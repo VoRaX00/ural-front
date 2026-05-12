@@ -8,7 +8,13 @@ import * as filesApi from "../../api/files.api";
 import { formatCarType } from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
-import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
+import {
+  formatAddress,
+  formatDateTime,
+  formatDecimal,
+  formatKgAndTonnes,
+  formatTonnesFromKg,
+} from "../../utils/format";
 import {
   getContractCarTitle,
   getContractCargoTitle,
@@ -166,7 +172,7 @@ export const ContractDetailPage = () => {
                   <DetailField label="Ширина" value={formatDecimal(contract.cargo?.width)} />
                   <DetailField label="Высота" value={formatDecimal(contract.cargo?.height)} />
                   <DetailField label="Объём" value={formatDecimal(contract.cargo?.volume)} />
-                  <DetailField label="Вес" value={formatDecimal(contract.cargo?.weight)} />
+                  <DetailField label="Вес" value={formatKgAndTonnes(contract.cargo?.weight)} />
                   <DetailField
                     wide
                     label="Погрузка"
@@ -203,7 +209,7 @@ export const ContractDetailPage = () => {
                   />
                   <DetailField
                     label="Грузоподъёмность"
-                    value={formatDecimal(contract.car?.loadCapacity)}
+                    value={formatTonnesFromKg(contract.car?.loadCapacity)}
                   />
                   <DetailField label="Год выпуска" value={contract.car?.yearProduction ?? "—"} />
                   <DetailField label="VIN" value={contract.car?.vinNumber || "—"} />

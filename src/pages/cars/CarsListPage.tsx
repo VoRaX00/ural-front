@@ -14,6 +14,7 @@ import {
   Segmented,
   Select,
   Spin,
+  Tag,
   Typography,
   message,
 } from "antd";
@@ -27,7 +28,7 @@ import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatCarType } from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto, CargoDto } from "../../types/domain";
-import { formatDecimal } from "../../utils/format";
+import { formatTonnesFromKg } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
@@ -300,71 +301,68 @@ export const CarsListPage = () => {
                   const firstFileId = car.fileIds?.[0];
                   const coverUrl =
                     typeof firstFileId === "number" ? fileUrlById[firstFileId] : undefined;
+                  const isOwnCar = Boolean(currentUserUuid && car.userUuid === currentUserUuid);
                   return (
                 <Card
-                  className="entity-card"
+                  className="entity-card entity-card-improved"
                   hoverable
                   onClick={() => navigate(`/cars/${car.id}`)}
-                  title={
-                    <span className="entity-card-title">
-                      {car.carName} {car.carModel}
-                    </span>
-                  }
                 >
-                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                    {coverUrl && (
-                      <img
-                        alt={`${car.carName} ${car.carModel}`}
-                        src={coverUrl}
-                        style={{
-                          width: 180,
-                          minWidth: 180,
-                          height: 120,
-                          objectFit: "cover",
-                          borderRadius: 8,
-                        }}
-                      />
-                    )}
-                    <div style={{ flex: 1 }}>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Тип</Text>
-                        <Text>{formatCarType(car.carType)}</Text>
+                  <div className="entity-card-layout">
+                    <div className="entity-card-media">
+                      {coverUrl ? (
+                        <img
+                          alt={`${car.carName} ${car.carModel}`}
+                          src={coverUrl}
+                        />
+                      ) : (
+                        <div className="entity-card-media-placeholder">Авто</div>
+                      )}
+                    </div>
+                    <div className="entity-card-content">
+                      <div className="entity-card-header-row">
+                        <div className="entity-card-heading">
+                          <Title level={4} className="entity-card-name">
+                            {car.carName} {car.carModel}
+                          </Title>
+                          <Text type="secondary">{formatCarType(car.carType)}</Text>
+                        </div>
+                        <Tag color="blue">
+                          {car.yearProduction ? `${car.yearProduction} г.` : "—"}
+                        </Tag>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Кузов</Text>
-                        <Text ellipsis={{ tooltip: formatBodyTypes(car.bodyType) }}>
-                          {formatBodyTypes(car.bodyType)}
-                        </Text>
+
+                      <div className="entity-card-tag-row">
+                        <Tag>{formatBodyTypes(car.bodyType)}</Tag>
+                        <Tag>{formatLoadingTypes(car.loadingType)}</Tag>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Загрузка</Text>
-                        <Text ellipsis={{ tooltip: formatLoadingTypes(car.loadingType) }}>
-                          {formatLoadingTypes(car.loadingType)}
-                        </Text>
+
+                      <div className="entity-card-info-grid">
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Грузоподъёмность</Text>
+                          <Text strong>{formatTonnesFromKg(car.loadCapacity)}</Text>
+                        </div>
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">VIN</Text>
+                          <Text code ellipsis={{ tooltip: car.vinNumber || "—" }}>
+                            {car.vinNumber || "—"}
+                          </Text>
+                        </div>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Грузоподъёмность</Text>
-                        <Text>{formatDecimal(car.loadCapacity)}</Text>
-                      </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Год</Text>
-                        <Text>{car.yearProduction ?? "—"}</Text>
-                      </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">VIN</Text>
-                        <Text code>{car.vinNumber || "—"}</Text>
-                      </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <Button
-                          type="primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void openRespondModal(car);
-                          }}
-                        >
-                          Откликнуться
-                        </Button>
-                        {currentUserUuid && car.userUuid === currentUserUuid && (
+
+                      <div className="entity-card-actions">
+                        {!isOwnCar && (
+                          <Button
+                            type="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void openRespondModal(car);
+                            }}
+                          >
+                            Откликнуться
+                          </Button>
+                        )}
+                        {isOwnCar && (
                           <>
                             <Button
                               icon={<EditOutlined />}

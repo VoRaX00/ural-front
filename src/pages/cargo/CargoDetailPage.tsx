@@ -6,7 +6,7 @@ import * as cargoApi from "../../api/cargo.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CargoDto } from "../../types/domain";
-import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
+import { formatAddress, formatDateTime, formatDecimal, formatKgAndTonnes } from "../../utils/format";
 
 export const CargoDetailPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
@@ -82,7 +82,7 @@ export const CargoDetailPage = () => {
               <Descriptions.Item label="Ширина">{formatDecimal(cargo.width)}</Descriptions.Item>
               <Descriptions.Item label="Высота">{formatDecimal(cargo.height)}</Descriptions.Item>
               <Descriptions.Item label="Объём">{formatDecimal(cargo.volume)}</Descriptions.Item>
-              <Descriptions.Item label="Вес">{formatDecimal(cargo.weight)}</Descriptions.Item>
+              <Descriptions.Item label="Вес">{formatKgAndTonnes(cargo.weight)}</Descriptions.Item>
               <Descriptions.Item label="Цена">{formatDecimal(cargo.price)}</Descriptions.Item>
               <Descriptions.Item label="Погрузка" span={2}>
                 {formatAddress(cargo.loadingPlace ?? {})}

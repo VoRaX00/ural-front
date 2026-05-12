@@ -14,6 +14,7 @@ import {
   Segmented,
   Select,
   Spin,
+  Tag,
   Typography,
   message,
 } from "antd";
@@ -26,7 +27,7 @@ import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto, CargoDto } from "../../types/domain";
-import { formatAddress, formatDecimal } from "../../utils/format";
+import { formatAddress, formatDecimal, formatKgAndTonnes } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
@@ -303,82 +304,85 @@ export const CargoListPage = () => {
                   const firstFileId = c.fileIds?.[0];
                   const coverUrl =
                     typeof firstFileId === "number" ? fileUrlById[firstFileId] : undefined;
+                  const isOwnCargo = Boolean(currentUserUuid && c.userUuid === currentUserUuid);
 
                   return (
                 <Card
-                  className="entity-card"
+                  className="entity-card entity-card-improved"
                   hoverable
                   onClick={() => navigate(`/cargo/${c.id}`)}
-                  title={<span className="entity-card-title">{c.name}</span>}
                 >
-                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                    {coverUrl && (
-                      <img
-                        alt={c.name}
-                        src={coverUrl}
-                        style={{
-                          width: 180,
-                          minWidth: 180,
-                          height: 120,
-                          objectFit: "cover",
-                          borderRadius: 8,
-                        }}
-                      />
-                    )}
-                    <div style={{ flex: 1 }}>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Кузов</Text>
-                        <Text ellipsis={{ tooltip: formatBodyTypes(c.bodyTypes) }}>
-                          {formatBodyTypes(c.bodyTypes)}
-                        </Text>
+                  <div className="entity-card-layout">
+                    <div className="entity-card-media">
+                      {coverUrl ? (
+                        <img alt={c.name} src={coverUrl} />
+                      ) : (
+                        <div className="entity-card-media-placeholder">Груз</div>
+                      )}
+                    </div>
+                    <div className="entity-card-content">
+                      <div className="entity-card-header-row">
+                        <div className="entity-card-heading">
+                          <Title level={4} className="entity-card-name">
+                            {c.name}
+                          </Title>
+                          <Text type="secondary" ellipsis={{ tooltip: formatBodyTypes(c.bodyTypes) }}>
+                            {formatBodyTypes(c.bodyTypes)}
+                          </Text>
+                        </div>
+                        <Tag color="green">{formatDecimal(c.price)} руб</Tag>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Погрузка</Text>
-                        <Text ellipsis={{ tooltip: formatLoadingTypes(c.loadingTypes) }}>
-                          {formatLoadingTypes(c.loadingTypes)}
-                        </Text>
+
+                      <div className="entity-card-tag-row">
+                        <Tag>{formatLoadingTypes(c.loadingTypes)}</Tag>
+                        <Tag>{formatLoadingTypes(c.unloadingTypes)}</Tag>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Разгрузка</Text>
-                        <Text ellipsis={{ tooltip: formatLoadingTypes(c.unloadingTypes) }}>
-                          {formatLoadingTypes(c.unloadingTypes)}
-                        </Text>
+
+                      <div className="entity-card-info-grid">
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Вес</Text>
+                          <Text strong>{formatKgAndTonnes(c.weight)}</Text>
+                        </div>
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Объём</Text>
+                          <Text strong>{formatDecimal(c.volume)} м³</Text>
+                        </div>
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Габариты</Text>
+                          <Text>
+                            {[c.length, c.width, c.height].map(formatDecimal).join(" × ")} м
+                          </Text>
+                        </div>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Вес</Text>
-                        <Text>{formatDecimal(c.weight)}</Text>
+
+                      <div className="entity-card-route-grid">
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Откуда</Text>
+                          <Text ellipsis={{ tooltip: formatAddress(c.loadingPlace ?? {}) }}>
+                            {formatAddress(c.loadingPlace ?? {})}
+                          </Text>
+                        </div>
+                        <div className="entity-card-info-item">
+                          <Text type="secondary">Куда</Text>
+                          <Text ellipsis={{ tooltip: formatAddress(c.unloadingPlace ?? {}) }}>
+                            {formatAddress(c.unloadingPlace ?? {})}
+                          </Text>
+                        </div>
                       </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Объём</Text>
-                        <Text>{formatDecimal(c.volume)}</Text>
-                      </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Цена</Text>
-                        <Text>{formatDecimal(c.price)}</Text>
-                      </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Откуда</Text>
-                        <Text ellipsis={{ tooltip: formatAddress(c.loadingPlace ?? {}) }}>
-                          {formatAddress(c.loadingPlace ?? {})}
-                        </Text>
-                      </div>
-                      <div className="entity-card-meta">
-                        <Text type="secondary">Куда</Text>
-                        <Text ellipsis={{ tooltip: formatAddress(c.unloadingPlace ?? {}) }}>
-                          {formatAddress(c.unloadingPlace ?? {})}
-                        </Text>
-                      </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <Button
-                          type="primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void openRespondModal(c);
-                          }}
-                        >
-                          Откликнуться
-                        </Button>
-                        {currentUserUuid && c.userUuid === currentUserUuid && (
+
+                      <div className="entity-card-actions">
+                        {!isOwnCargo && (
+                          <Button
+                            type="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void openRespondModal(c);
+                            }}
+                          >
+                            Откликнуться
+                          </Button>
+                        )}
+                        {isOwnCargo && (
                           <>
                             <Button
                               icon={<EditOutlined />}

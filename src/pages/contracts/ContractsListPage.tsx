@@ -5,7 +5,13 @@ import * as contractsApi from "../../api/contracts.api";
 import { formatCarType } from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
-import { formatAddress, formatDateTime, formatDecimal } from "../../utils/format";
+import {
+  formatAddress,
+  formatDateTime,
+  formatDecimal,
+  formatKgAndTonnes,
+  formatTonnesFromKg,
+} from "../../utils/format";
 import {
   getContractCarTitle,
   getContractCargoTitle,
@@ -124,7 +130,7 @@ export const ContractsListPage = () => {
                       <div className="entity-card-meta">
                         <Text type="secondary">Вес / объём</Text>
                         <Text>
-                          {formatDecimal(c.cargo?.weight)} / {formatDecimal(c.cargo?.volume)}
+                          {formatKgAndTonnes(c.cargo?.weight)} / {formatDecimal(c.cargo?.volume)}
                         </Text>
                       </div>
                       <div className="entity-card-meta">
@@ -159,7 +165,7 @@ export const ContractsListPage = () => {
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Грузоподъёмность</Text>
-                        <Text>{formatDecimal(c.car?.loadCapacity)}</Text>
+                        <Text>{formatTonnesFromKg(c.car?.loadCapacity)}</Text>
                       </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Год</Text>
