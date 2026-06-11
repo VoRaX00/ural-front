@@ -1,8 +1,9 @@
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Descriptions, Spin, Typography, message } from "antd";
+import { Button, Descriptions, Empty, Image, Spin, Typography, message } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as cargoApi from "../../api/cargo.api";
+import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CargoDto } from "../../types/domain";
@@ -12,6 +13,7 @@ export const CargoDetailPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [cargo, setCargo] = useState<CargoDto | null>(null);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const currentUserUuid = getCurrentUserUuid();
 
@@ -29,10 +31,19 @@ export const CargoDetailPage = () => {
     }
     let alive = true;
     setLoading(true);
+    setPhotoUrls([]);
     cargoApi
       .getCargoById(id)
-      .then((data) => {
-        if (alive) setCargo(data);
+      .then(async (data) => {
+        if (!alive) return;
+        setCargo(data);
+
+        try {
+          const files = await filesApi.getFiles(data.fileIds ?? []);
+          if (alive) setPhotoUrls(files.map((file) => file.url));
+        } catch {
+          if (alive) setPhotoUrls([]);
+        }
       })
       .catch(() => {
         message.error("Не удалось загрузить груз");
@@ -68,34 +79,72 @@ export const CargoDetailPage = () => {
             <Typography.Title level={3} style={{ marginTop: 0 }}>
               {cargo.name}
             </Typography.Title>
-            <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="middle">
-              <Descriptions.Item label="ID">{cargo.id}</Descriptions.Item>
-              <Descriptions.Item label="Тип кузова">{formatBodyTypes(cargo.bodyTypes)}</Descriptions.Item>
-              <Descriptions.Item label="Тип погрузки">
-                {formatLoadingTypes(cargo.loadingTypes)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Тип разгрузки">
-                {formatLoadingTypes(cargo.unloadingTypes)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Пользователь (UUID)">{cargo.userUuid}</Descriptions.Item>
-              <Descriptions.Item label="Длина">{formatDecimal(cargo.length)}</Descriptions.Item>
-              <Descriptions.Item label="Ширина">{formatDecimal(cargo.width)}</Descriptions.Item>
-              <Descriptions.Item label="Высота">{formatDecimal(cargo.height)}</Descriptions.Item>
-              <Descriptions.Item label="Объём">{formatDecimal(cargo.volume)}</Descriptions.Item>
-              <Descriptions.Item label="Вес">{formatKgAndTonnes(cargo.weight)}</Descriptions.Item>
-              <Descriptions.Item label="Цена">{formatDecimal(cargo.price)}</Descriptions.Item>
-              <Descriptions.Item label="Погрузка" span={2}>
-                {formatAddress(cargo.loadingPlace ?? {})}
-              </Descriptions.Item>
-              <Descriptions.Item label="Разгрузка" span={2}>
-                {formatAddress(cargo.unloadingPlace ?? {})}
-              </Descriptions.Item>
-              <Descriptions.Item label="Комментарий" span={2}>
-                {cargo.comment || "—"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Создан">{formatDateTime(cargo.createdAt)}</Descriptions.Item>
-              <Descriptions.Item label="Обновлён">{formatDateTime(cargo.updatedAt)}</Descriptions.Item>
-            </Descriptions>
+
+            <div className="detail-overview-layout">
+              <section className="detail-media-column">
+                {photoUrls.length === 0 ? (
+                  <div className="detail-media-empty">
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Фотографии не прикреплены" />
+                  </div>
+                ) : (
+                  <Image.PreviewGroup>
+                    <div className="detail-media-gallery">
+                      <Image
+                        className="detail-main-photo"
+                        src={photoUrls[0]}
+                        alt={`${cargo.name}, главное фото`}
+                      />
+                      {photoUrls.length > 1 && (
+                        <div className="detail-thumbnail-row">
+                          {photoUrls.slice(1).map((url, index) => (
+                            <Image
+                              key={`${url}-${index}`}
+                              className="detail-thumbnail-photo"
+                              src={url}
+                              alt={`${cargo.name}, фото ${index + 2}`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Image.PreviewGroup>
+                )}
+              </section>
+
+              <Descriptions
+                bordered
+                className="detail-side-descriptions"
+                column={1}
+                size="middle"
+              >
+                <Descriptions.Item label="ID">{cargo.id}</Descriptions.Item>
+                <Descriptions.Item label="Тип кузова">{formatBodyTypes(cargo.bodyTypes)}</Descriptions.Item>
+                <Descriptions.Item label="Тип погрузки">
+                  {formatLoadingTypes(cargo.loadingTypes)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Тип разгрузки">
+                  {formatLoadingTypes(cargo.unloadingTypes)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Пользователь (UUID)">{cargo.userUuid}</Descriptions.Item>
+                <Descriptions.Item label="Длина">{formatDecimal(cargo.length)}</Descriptions.Item>
+                <Descriptions.Item label="Ширина">{formatDecimal(cargo.width)}</Descriptions.Item>
+                <Descriptions.Item label="Высота">{formatDecimal(cargo.height)}</Descriptions.Item>
+                <Descriptions.Item label="Объём">{formatDecimal(cargo.volume)}</Descriptions.Item>
+                <Descriptions.Item label="Вес">{formatKgAndTonnes(cargo.weight)}</Descriptions.Item>
+                <Descriptions.Item label="Цена">{formatDecimal(cargo.price)}</Descriptions.Item>
+                <Descriptions.Item label="Погрузка" span={2}>
+                  {formatAddress(cargo.loadingPlace ?? {})}
+                </Descriptions.Item>
+                <Descriptions.Item label="Разгрузка" span={2}>
+                  {formatAddress(cargo.unloadingPlace ?? {})}
+                </Descriptions.Item>
+                <Descriptions.Item label="Комментарий" span={2}>
+                  {cargo.comment || "—"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Создан">{formatDateTime(cargo.createdAt)}</Descriptions.Item>
+                <Descriptions.Item label="Обновлён">{formatDateTime(cargo.updatedAt)}</Descriptions.Item>
+              </Descriptions>
+            </div>
           </>
         )}
       </Spin>

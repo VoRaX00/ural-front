@@ -19,11 +19,27 @@ export interface ContractDto {
   updatedAt?: string;
 }
 
+export interface NotificationContractDto {
+  id: number;
+  title: string;
+  body: string;
+  userUuids: string[];
+  contractId?: number | null;
+  isRead: boolean;
+}
+
 export interface CreateContractPayload {
   carId: number;
   cargoId: number;
   price: number;
 }
+
+export type CarPhotoAnalysisStatus =
+  | "EXCELLENT"
+  | "GOOD"
+  | "NEEDS_REPAIR"
+  | "CRITICAL"
+  | "UNKNOWN";
 
 export interface CarDto {
   id: string;
@@ -39,6 +55,8 @@ export interface CarDto {
   updatedAt: string;
   vinNumber: string;
   fileIds?: number[] | null;
+  photoAnalysisSummary?: string | null;
+  photoAnalysisStatus?: CarPhotoAnalysisStatus | null;
 }
 
 /** Поля для POST /cars (без id, пользователя и меток времени). */

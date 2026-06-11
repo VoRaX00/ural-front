@@ -27,3 +27,13 @@ export async function getContractById(id: number): Promise<ContractDto> {
   const res = await api.get<ContractDto>(`/contracts/${id}`);
   return res.data;
 }
+
+export async function updateContractStatus(
+  id: number,
+  options?: { isClose?: boolean }
+): Promise<ContractDto> {
+  const res = await api.patch<ContractDto>(`/contracts/${id}/status`, null, {
+    params: options?.isClose ? { isClose: true } : undefined,
+  });
+  return res.data;
+}

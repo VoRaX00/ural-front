@@ -1,15 +1,17 @@
 import {
+  BellOutlined,
   CarOutlined,
   FileTextOutlined,
   InboxOutlined,
   LogoutOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Dropdown, Layout, Menu, theme } from "antd";
+import { Avatar, Badge, Dropdown, Layout, Menu, theme } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getAccessToken } from "../api/client";
 import * as filesApi from "../api/files.api";
+import * as notificationsApi from "../api/notifications.api";
 import * as usersApi from "../api/users.api";
 import { useAuth } from "../auth/AuthProvider";
 import { getCurrentUserUuid } from "../auth/currentUser";
@@ -21,6 +23,7 @@ export const PrivateLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -29,6 +32,7 @@ export const PrivateLayout = () => {
     if (location.pathname.startsWith("/cars")) return "cars";
     if (location.pathname.startsWith("/cargo")) return "cargo";
     if (location.pathname.startsWith("/contracts")) return "contracts";
+    if (location.pathname.startsWith("/notifications")) return "notifications";
     return "";
   }, [location.pathname]);
 
@@ -54,11 +58,33 @@ export const PrivateLayout = () => {
     }
   }, []);
 
+  const loadNotificationsCount = useCallback(async () => {
+    if (!getAccessToken()) {
+      setUnreadNotificationsCount(0);
+      return;
+    }
+
+    try {
+      const notifications = await notificationsApi.getNotifications();
+      setUnreadNotificationsCount(
+        notifications.filter((notification) => !notification.isRead).length
+      );
+    } catch {
+      setUnreadNotificationsCount(0);
+    }
+  }, []);
+
   useEffect(() => {
     void loadAvatar();
     window.addEventListener("profile-updated", loadAvatar);
     return () => window.removeEventListener("profile-updated", loadAvatar);
   }, [loadAvatar]);
+
+  useEffect(() => {
+    void loadNotificationsCount();
+    window.addEventListener("notifications-updated", loadNotificationsCount);
+    return () => window.removeEventListener("notifications-updated", loadNotificationsCount);
+  }, [loadNotificationsCount]);
 
   if (!getAccessToken()) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -87,6 +113,15 @@ export const PrivateLayout = () => {
               key: "contracts",
               icon: <FileTextOutlined />,
               label: <Link to="/contracts">Контракты</Link>,
+            },
+            {
+              key: "notifications",
+              icon: (
+                <Badge count={unreadNotificationsCount} size="small">
+                  <BellOutlined />
+                </Badge>
+              ),
+              label: <Link to="/notifications">Уведомления</Link>,
             },
           ]}
           className="app-header-menu"

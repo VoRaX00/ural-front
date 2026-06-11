@@ -1,8 +1,25 @@
-import { Card, Col, Empty, Pagination, Row, Spin, Tag, Typography, message } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Empty,
+  Pagination,
+  Popconfirm,
+  Row,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+  message,
+} from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as contractsApi from "../../api/contracts.api";
-import { formatCarType } from "../../config/carOptions";
+import {
+  formatCarType,
+  formatPhotoAnalysisStatus,
+  getPhotoAnalysisStatusColor,
+} from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
 import {
@@ -27,6 +44,7 @@ export const ContractsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState<ContractDto[]>([]);
+  const [updatingContractId, setUpdatingContractId] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -57,6 +75,19 @@ export const ContractsListPage = () => {
     };
   }, [page, pageSize]);
 
+  const updateContractStatus = async (contractId: number, isClose?: boolean) => {
+    setUpdatingContractId(contractId);
+    try {
+      const updated = await contractsApi.updateContractStatus(contractId, { isClose });
+      setItems((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      message.success(isClose ? "Сделка отклонена" : "Статус контракта обновлён");
+    } catch {
+      message.error(isClose ? "Не удалось отклонить сделку" : "Не удалось обновить статус");
+    } finally {
+      setUpdatingContractId(null);
+    }
+  };
+
   return (
     <div className="list-page">
       <div className="list-page-toolbar">
@@ -82,7 +113,39 @@ export const ContractsListPage = () => {
                       <Tag color="blue">{getContractStatusText(c.status)}</Tag>
                     </div>
                   }
-                  extra={<Text strong>{formatDecimal(c.price)}</Text>}
+                  extra={
+                    <div
+                      className="contract-card-extra"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <Text strong>{formatDecimal(c.price)}</Text>
+                      <Space wrap size={[8, 8]}>
+                        <Button
+                          size="small"
+                          type="primary"
+                          loading={updatingContractId === c.id}
+                          onClick={() => void updateContractStatus(c.id)}
+                        >
+                          Следующий статус
+                        </Button>
+                        <Popconfirm
+                          title="Отклонить сделку?"
+                          okText="Отклонить"
+                          cancelText="Отмена"
+                          okButtonProps={{ danger: true }}
+                          onConfirm={() => void updateContractStatus(c.id, true)}
+                        >
+                          <Button
+                            size="small"
+                            danger
+                            loading={updatingContractId === c.id}
+                          >
+                            Отклонить
+                          </Button>
+                        </Popconfirm>
+                      </Space>
+                    </div>
+                  }
                 >
                   <div className="contract-card-grid">
                     <section className="contract-card-section">
@@ -174,6 +237,12 @@ export const ContractsListPage = () => {
                       <div className="entity-card-meta">
                         <Text type="secondary">VIN</Text>
                         <Text code>{c.car?.vinNumber || "—"}</Text>
+                      </div>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Состояние</Text>
+                        <Tag color={getPhotoAnalysisStatusColor(c.car?.photoAnalysisStatus)}>
+                          {formatPhotoAnalysisStatus(c.car?.photoAnalysisStatus)}
+                        </Tag>
                       </div>
                     </section>
 

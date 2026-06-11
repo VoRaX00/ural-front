@@ -25,7 +25,11 @@ import * as cargoApi from "../../api/cargo.api";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
-import { formatCarType } from "../../config/carOptions";
+import {
+  formatCarType,
+  formatPhotoAnalysisStatus,
+  getPhotoAnalysisStatusColor,
+} from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { CarDto, CargoDto } from "../../types/domain";
 import { formatTonnesFromKg } from "../../utils/format";
@@ -335,6 +339,9 @@ export const CarsListPage = () => {
                       <div className="entity-card-tag-row">
                         <Tag>{formatBodyTypes(car.bodyType)}</Tag>
                         <Tag>{formatLoadingTypes(car.loadingType)}</Tag>
+                        <Tag color={getPhotoAnalysisStatusColor(car.photoAnalysisStatus)}>
+                          {formatPhotoAnalysisStatus(car.photoAnalysisStatus)}
+                        </Tag>
                       </div>
 
                       <div className="entity-card-info-grid">

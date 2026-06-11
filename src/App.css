@@ -57,6 +57,14 @@
   background: transparent !important;
 }
 
+.app-header-menu .ant-badge {
+  color: inherit;
+}
+
+.app-header-menu .ant-badge .anticon {
+  color: inherit;
+}
+
 .app-content {
   padding: 0;
   background: transparent !important;
@@ -320,6 +328,14 @@
   min-width: 0;
 }
 
+.contract-card-extra {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .contract-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -452,6 +468,139 @@
   overflow: hidden;
 }
 
+.detail-side-descriptions {
+  min-width: 0;
+}
+
+.detail-side-descriptions .ant-descriptions-item-label {
+  width: 210px;
+  min-width: 210px;
+}
+
+.detail-side-descriptions .ant-descriptions-item-content {
+  overflow-wrap: anywhere;
+}
+
+.detail-overview-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 520px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.detail-media-column {
+  min-width: 0;
+}
+
+.detail-media-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-media-gallery .ant-image {
+  display: block;
+}
+
+.detail-main-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.detail-thumbnail-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 10px;
+}
+
+.detail-thumbnail-row .ant-image {
+  width: 100%;
+}
+
+.detail-thumbnail-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.detail-media-empty {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.detail-section {
+  margin-top: 18px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.detail-section .ant-typography {
+  margin-top: 0;
+}
+
+.ai-analysis-panel {
+  border-color: #c7d2fe;
+  background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+}
+
+.ai-analysis-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.ai-analysis-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.ai-analysis-title > .anticon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #1d4ed8;
+  background: #dbeafe;
+  font-size: 20px;
+}
+
+.ai-analysis-title .ant-typography {
+  margin-bottom: 2px;
+}
+
+.ai-analysis-summary {
+  margin-bottom: 0 !important;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #1f2937;
+  line-height: 1.55;
+}
+
 .contract-detail-header {
   display: flex;
   align-items: flex-start;
@@ -463,6 +612,13 @@
 .contract-detail-header .ant-tag {
   margin-top: 8px;
   margin-right: 0;
+}
+
+.contract-detail-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .contract-detail-panel {
@@ -525,6 +681,29 @@
   overflow-wrap: anywhere;
 }
 
+.notifications-list {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.notification-item {
+  padding: 18px 22px !important;
+  background: #fff;
+}
+
+.notification-item-unread {
+  background: #f8fbff;
+}
+
+.notification-item-icon {
+  color: #2563eb;
+  font-size: 20px;
+  margin-top: 3px;
+}
+
 .list-page .ant-btn-primary {
   border-radius: 10px;
 }
@@ -555,6 +734,10 @@
     padding-top: 8px;
   }
 
+  .contract-card-extra {
+    justify-content: flex-start;
+  }
+
   .contract-detail-header {
     flex-direction: column;
     gap: 8px;
@@ -564,8 +747,28 @@
     margin-top: 0;
   }
 
+  .contract-detail-actions {
+    align-items: flex-start;
+  }
+
   .contract-detail-panel {
     padding: 18px;
+  }
+
+  .detail-section {
+    padding: 18px;
+  }
+
+  .detail-overview-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-media-empty {
+    min-height: 220px;
+  }
+
+  .ai-analysis-heading {
+    flex-direction: column;
   }
 
   .contract-detail-grid {

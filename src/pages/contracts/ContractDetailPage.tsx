@@ -1,11 +1,15 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Spin, Tag, Typography, message } from "antd";
+import { Button, Popconfirm, Space, Spin, Tag, Typography, message } from "antd";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
-import { formatCarType } from "../../config/carOptions";
+import {
+  formatCarType,
+  formatPhotoAnalysisStatus,
+  getPhotoAnalysisStatusColor,
+} from "../../config/carOptions";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
 import type { ContractDto } from "../../types/domain";
 import {
@@ -44,6 +48,7 @@ export const ContractDetailPage = () => {
   const [contract, setContract] = useState<ContractDto | null>(null);
   const [fileUrlById, setFileUrlById] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const id = useMemo(() => {
     if (!idParam) return NaN;
@@ -109,6 +114,21 @@ export const ContractDetailPage = () => {
     typeof firstCargoFileId === "number" ? fileUrlById[firstCargoFileId] : undefined;
   const carImageUrl = typeof firstCarFileId === "number" ? fileUrlById[firstCarFileId] : undefined;
 
+  const updateContractStatus = async (isClose?: boolean) => {
+    if (!contract) return;
+
+    setUpdatingStatus(true);
+    try {
+      const updated = await contractsApi.updateContractStatus(contract.id, { isClose });
+      setContract(updated);
+      message.success(isClose ? "Сделка отклонена" : "Статус контракта обновлён");
+    } catch {
+      message.error(isClose ? "Не удалось отклонить сделку" : "Не удалось обновить статус");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="detail-page">
       <div className="detail-page-toolbar">
@@ -132,7 +152,29 @@ export const ContractDetailPage = () => {
                   {getContractCarTitle(contract)}
                 </Typography.Text>
               </div>
-              <Tag color="blue">{getContractStatusText(contract.status)}</Tag>
+              <div className="contract-detail-actions">
+                <Tag color="blue">{getContractStatusText(contract.status)}</Tag>
+                <Space wrap size={[8, 8]}>
+                  <Button
+                    type="primary"
+                    loading={updatingStatus}
+                    onClick={() => void updateContractStatus()}
+                  >
+                    Следующий статус
+                  </Button>
+                  <Popconfirm
+                    title="Отклонить сделку?"
+                    okText="Отклонить"
+                    cancelText="Отмена"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => void updateContractStatus(true)}
+                  >
+                    <Button danger loading={updatingStatus}>
+                      Отклонить
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              </div>
             </div>
 
             <section className="contract-detail-panel">
@@ -213,6 +255,19 @@ export const ContractDetailPage = () => {
                   />
                   <DetailField label="Год выпуска" value={contract.car?.yearProduction ?? "—"} />
                   <DetailField label="VIN" value={contract.car?.vinNumber || "—"} />
+                  <DetailField
+                    label="Состояние по фото"
+                    value={
+                      <Tag color={getPhotoAnalysisStatusColor(contract.car?.photoAnalysisStatus)}>
+                        {formatPhotoAnalysisStatus(contract.car?.photoAnalysisStatus)}
+                      </Tag>
+                    }
+                  />
+                  <DetailField
+                    wide
+                    label="Выжимка нейросети"
+                    value={contract.car?.photoAnalysisSummary || "—"}
+                  />
                   <DetailField label="Создан" value={formatDateTime(contract.car?.createdAt)} />
                   <DetailField label="Обновлён" value={formatDateTime(contract.car?.updatedAt)} />
                 </div>

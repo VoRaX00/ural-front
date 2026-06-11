@@ -13,6 +13,7 @@ import { CargoListPage } from "./pages/cargo/CargoListPage";
 import { ContractDetailPage } from "./pages/contracts/ContractDetailPage";
 import { ContractsListPage } from "./pages/contracts/ContractsListPage";
 import { LoginPage } from "./pages/LoginPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { RegisterPage } from "./pages/RegisterPage";
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="cargo" element={<CargoListPage />} />
             <Route path="contracts/:id" element={<ContractDetailPage />} />
             <Route path="contracts" element={<ContractsListPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
