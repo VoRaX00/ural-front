@@ -1,13 +1,42 @@
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Descriptions, Empty, Image, Spin, Typography, message } from "antd";
+import { Button, Empty, Image, Spin, Tag, Typography, message } from "antd";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as cargoApi from "../../api/cargo.api";
 import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
-import type { CargoDto } from "../../types/domain";
-import { formatAddress, formatDateTime, formatDecimal, formatKgAndTonnes } from "../../utils/format";
+import type { AddressDto, CargoDto } from "../../types/domain";
+import { formatAddress, formatDateTime, formatDecimal, formatKgAndTonnes, formatRoute } from "../../utils/format";
+
+const { Text, Title, Paragraph } = Typography;
+
+type DetailFieldProps = {
+  label: string;
+  value: ReactNode;
+  wide?: boolean;
+};
+
+const DetailField = ({ label, value, wide }: DetailFieldProps) => (
+  <div className={`cargo-detail-field${wide ? " cargo-detail-field-wide" : ""}`}>
+    <Text type="secondary">{label}</Text>
+    <div className="cargo-detail-field-value">{value}</div>
+  </div>
+);
+
+const buildRouteStops = (
+  loadingPlace: AddressDto | undefined | null,
+  routePoints: AddressDto[] | undefined | null,
+  unloadingPlace: AddressDto | undefined | null
+) => [
+  { label: "Погрузка", address: formatAddress(loadingPlace ?? {}) },
+  ...(routePoints ?? []).map((point, index) => ({
+    label: `Промежуточная точка ${index + 1}`,
+    address: formatAddress(point ?? {}),
+  })),
+  { label: "Разгрузка", address: formatAddress(unloadingPlace ?? {}) },
+];
 
 export const CargoDetailPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
@@ -76,9 +105,9 @@ export const CargoDetailPage = () => {
       <Spin spinning={loading}>
         {cargo && (
           <>
-            <Typography.Title level={3} style={{ marginTop: 0 }}>
+            <Title level={3} style={{ marginTop: 0 }}>
               {cargo.name}
-            </Typography.Title>
+            </Title>
 
             <div className="detail-overview-layout">
               <section className="detail-media-column">
@@ -111,39 +140,76 @@ export const CargoDetailPage = () => {
                 )}
               </section>
 
-              <Descriptions
-                bordered
-                className="detail-side-descriptions"
-                column={1}
-                size="middle"
-              >
-                <Descriptions.Item label="ID">{cargo.id}</Descriptions.Item>
-                <Descriptions.Item label="Тип кузова">{formatBodyTypes(cargo.bodyTypes)}</Descriptions.Item>
-                <Descriptions.Item label="Тип погрузки">
-                  {formatLoadingTypes(cargo.loadingTypes)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Тип разгрузки">
-                  {formatLoadingTypes(cargo.unloadingTypes)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Пользователь (UUID)">{cargo.userUuid}</Descriptions.Item>
-                <Descriptions.Item label="Длина">{formatDecimal(cargo.length)}</Descriptions.Item>
-                <Descriptions.Item label="Ширина">{formatDecimal(cargo.width)}</Descriptions.Item>
-                <Descriptions.Item label="Высота">{formatDecimal(cargo.height)}</Descriptions.Item>
-                <Descriptions.Item label="Объём">{formatDecimal(cargo.volume)}</Descriptions.Item>
-                <Descriptions.Item label="Вес">{formatKgAndTonnes(cargo.weight)}</Descriptions.Item>
-                <Descriptions.Item label="Цена">{formatDecimal(cargo.price)}</Descriptions.Item>
-                <Descriptions.Item label="Погрузка" span={2}>
-                  {formatAddress(cargo.loadingPlace ?? {})}
-                </Descriptions.Item>
-                <Descriptions.Item label="Разгрузка" span={2}>
-                  {formatAddress(cargo.unloadingPlace ?? {})}
-                </Descriptions.Item>
-                <Descriptions.Item label="Комментарий" span={2}>
-                  {cargo.comment || "—"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Создан">{formatDateTime(cargo.createdAt)}</Descriptions.Item>
-                <Descriptions.Item label="Обновлён">{formatDateTime(cargo.updatedAt)}</Descriptions.Item>
-              </Descriptions>
+              <section className="cargo-detail-side">
+                <div className="cargo-detail-summary">
+                  <div>
+                    <Text type="secondary">Стоимость</Text>
+                    <Title level={4}>{formatDecimal(cargo.price)} руб</Title>
+                  </div>
+                  <Tag color="blue">Груз #{cargo.id}</Tag>
+                </div>
+
+                <div className="cargo-detail-tags">
+                  <Tag>{formatBodyTypes(cargo.bodyTypes)}</Tag>
+                  <Tag>{formatLoadingTypes(cargo.loadingTypes)}</Tag>
+                  <Tag>{formatLoadingTypes(cargo.unloadingTypes)}</Tag>
+                </div>
+
+                <section className="cargo-detail-panel cargo-detail-route-panel">
+                  <div className="cargo-detail-panel-header">
+                    <div>
+                      <Title level={5}>Маршрут</Title>
+                      <Text type="secondary">
+                        {(cargo.routePoints?.length ?? 0) > 0
+                          ? `${(cargo.routePoints?.length ?? 0) + 2} точки маршрута`
+                          : "Прямой маршрут"}
+                      </Text>
+                    </div>
+                  </div>
+
+                  <Paragraph className="cargo-detail-route-summary">
+                    {formatRoute(cargo.loadingPlace, cargo.routePoints, cargo.unloadingPlace)}
+                  </Paragraph>
+
+                  <div className="cargo-detail-route-list">
+                    {buildRouteStops(cargo.loadingPlace, cargo.routePoints, cargo.unloadingPlace).map(
+                      (stop, index) => (
+                        <div className="cargo-detail-route-stop" key={`${stop.label}-${index}`}>
+                          <span className="cargo-detail-route-marker">{index + 1}</span>
+                          <div className="cargo-detail-route-stop-content">
+                            <Text type="secondary">{stop.label}</Text>
+                            <Text>{stop.address}</Text>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </section>
+
+                <section className="cargo-detail-panel">
+                  <Title level={5}>Характеристики</Title>
+                  <div className="cargo-detail-grid">
+                    <DetailField label="Длина" value={`${formatDecimal(cargo.length)} м`} />
+                    <DetailField label="Ширина" value={`${formatDecimal(cargo.width)} м`} />
+                    <DetailField label="Высота" value={`${formatDecimal(cargo.height)} м`} />
+                    <DetailField label="Объём" value={`${formatDecimal(cargo.volume)} м³`} />
+                    <DetailField label="Вес" value={formatKgAndTonnes(cargo.weight)} />
+                    <DetailField label="Тип кузова" value={formatBodyTypes(cargo.bodyTypes)} />
+                    <DetailField label="Тип погрузки" value={formatLoadingTypes(cargo.loadingTypes)} />
+                    <DetailField label="Тип разгрузки" value={formatLoadingTypes(cargo.unloadingTypes)} />
+                    <DetailField label="Комментарий" value={cargo.comment || "—"} wide />
+                  </div>
+                </section>
+
+                <section className="cargo-detail-panel">
+                  <Title level={5}>Дополнительно</Title>
+                  <div className="cargo-detail-grid">
+                    <DetailField label="Пользователь (UUID)" value={cargo.userUuid} wide />
+                    <DetailField label="Создан" value={formatDateTime(cargo.createdAt)} />
+                    <DetailField label="Обновлён" value={formatDateTime(cargo.updatedAt)} />
+                  </div>
+                </section>
+              </section>
             </div>
           </>
         )}

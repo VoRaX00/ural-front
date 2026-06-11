@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Spin, Typography, Upload, message } from "antd";
 import type { RcFile } from "antd/es/upload";
 import { useEffect, useMemo, useState } from "react";
@@ -15,8 +15,8 @@ import {
   loadingTypeOptions,
 } from "../../config/cargoOptions";
 import type { CargoDto, CreateCargoPayload } from "../../types/domain";
-
-const addressRules = [{ required: true, message: "Заполните поле" }];
+import { AddressFields } from "./AddressFields";
+import { normalizeCargoPayload } from "./cargoForm";
 
 export const CargoEditPage = () => {
   const { id: idParam } = useParams<{ id: string }>();
@@ -66,6 +66,7 @@ export const CargoEditPage = () => {
           weight: data.weight,
           price: data.price,
           loadingPlace: data.loadingPlace,
+          routePoints: data.routePoints ?? [],
           unloadingPlace: data.unloadingPlace,
           comment: data.comment,
         });
@@ -96,8 +97,9 @@ export const CargoEditPage = () => {
         newFileIds = uploaded.map((x) => x.id);
       }
 
+      const payload = normalizeCargoPayload(values);
       const updated = await cargoApi.updateCargo(cargo.id, {
-        ...values,
+        ...payload,
         bodyTypes: (values.bodyTypes ?? []).map(getBodyTypeLabel),
         loadingTypes: (values.loadingTypes ?? []).map(getLoadingTypeLabel),
         unloadingTypes: (values.unloadingTypes ?? []).map(getLoadingTypeLabel),
@@ -177,26 +179,42 @@ export const CargoEditPage = () => {
             </Row>
 
             <Typography.Title level={5}>Адрес погрузки</Typography.Title>
-            <Row gutter={16}>
-              <Col xs={24} md={8}><Form.Item name={["loadingPlace", "country"]} label="Страна" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} md={8}><Form.Item name={["loadingPlace", "region"]} label="Регион"><Input /></Form.Item></Col>
-              <Col xs={24} md={8}><Form.Item name={["loadingPlace", "city"]} label="Город" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name={["loadingPlace", "street"]} label="Улица" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["loadingPlace", "building"]} label="Дом"><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["loadingPlace", "apartment"]} label="Квартира / офис"><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["loadingPlace", "postalCode"]} label="Индекс"><Input /></Form.Item></Col>
-            </Row>
+            <AddressFields namePrefix={["loadingPlace"]} />
+
+            <Form.List name="routePoints">
+              {(fields, { add, remove }) => (
+                <div className="route-points-section">
+                  <div className="route-points-header">
+                    <Typography.Title level={5}>Промежуточные точки маршрута</Typography.Title>
+                    <Button type="dashed" icon={<PlusOutlined />} onClick={() => add()}>
+                      Добавить точку
+                    </Button>
+                  </div>
+                  {fields.length === 0 && (
+                    <Typography.Text type="secondary">Промежуточные точки не указаны</Typography.Text>
+                  )}
+                  {fields.map((field, index) => (
+                    <div className="route-point-block" key={field.key}>
+                      <div className="route-point-header">
+                        <Typography.Text strong>Точка {index + 1}</Typography.Text>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          onClick={() => remove(field.name)}
+                        >
+                          Удалить
+                        </Button>
+                      </div>
+                      <AddressFields namePrefix={[field.name]} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Form.List>
 
             <Typography.Title level={5}>Адрес разгрузки</Typography.Title>
-            <Row gutter={16}>
-              <Col xs={24} md={8}><Form.Item name={["unloadingPlace", "country"]} label="Страна" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} md={8}><Form.Item name={["unloadingPlace", "region"]} label="Регион"><Input /></Form.Item></Col>
-              <Col xs={24} md={8}><Form.Item name={["unloadingPlace", "city"]} label="Город" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name={["unloadingPlace", "street"]} label="Улица" rules={addressRules}><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["unloadingPlace", "building"]} label="Дом"><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["unloadingPlace", "apartment"]} label="Квартира / офис"><Input /></Form.Item></Col>
-              <Col xs={24} sm={8} md={4}><Form.Item name={["unloadingPlace", "postalCode"]} label="Индекс"><Input /></Form.Item></Col>
-            </Row>
+            <AddressFields namePrefix={["unloadingPlace"]} />
 
             <Form.Item name="comment" label="Комментарий">
               <Input.TextArea rows={3} />

@@ -100,6 +100,7 @@ export interface CargoDto {
   weight: number;
   loadingPlace: AddressDto;
   unloadingPlace: AddressDto;
+  routePoints?: AddressDto[] | null;
   price: number;
   comment?: string;
   createdAt: string;
@@ -119,6 +120,7 @@ export interface CreateCargoPayload {
   weight: number;
   loadingPlace: AddressDto;
   unloadingPlace: AddressDto;
+  routePoints?: AddressDto[];
   price: number;
   comment?: string;
   fileIds?: number[];

@@ -17,6 +17,7 @@ import {
   formatDateTime,
   formatDecimal,
   formatKgAndTonnes,
+  formatRoute,
   formatTonnesFromKg,
 } from "../../utils/format";
 import {
@@ -222,8 +223,28 @@ export const ContractDetailPage = () => {
                   />
                   <DetailField
                     wide
+                    label="Промежуточные точки"
+                    value={
+                      contract.cargo?.routePoints?.length
+                        ? contract.cargo.routePoints.map((point, index) => (
+                            <div key={`${point.city ?? "point"}-${index}`}>{formatAddress(point)}</div>
+                          ))
+                        : "—"
+                    }
+                  />
+                  <DetailField
+                    wide
                     label="Разгрузка"
                     value={formatAddress(contract.cargo?.unloadingPlace ?? {})}
+                  />
+                  <DetailField
+                    wide
+                    label="Маршрут"
+                    value={formatRoute(
+                      contract.cargo?.loadingPlace,
+                      contract.cargo?.routePoints,
+                      contract.cargo?.unloadingPlace
+                    )}
                   />
                   <DetailField wide label="Комментарий" value={contract.cargo?.comment || "—"} />
                 </div>

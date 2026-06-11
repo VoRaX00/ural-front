@@ -26,8 +26,8 @@ import * as contractsApi from "../../api/contracts.api";
 import * as filesApi from "../../api/files.api";
 import { getCurrentUserUuid } from "../../auth/currentUser";
 import { formatBodyTypes, formatLoadingTypes } from "../../config/cargoOptions";
-import type { CarDto, CargoDto } from "../../types/domain";
-import { formatAddress, formatDecimal, formatKgAndTonnes } from "../../utils/format";
+import type { AddressDto, CarDto, CargoDto } from "../../types/domain";
+import { formatAddress, formatDecimal, formatKgAndTonnes, formatRoute } from "../../utils/format";
 
 const { Text, Title } = Typography;
 
@@ -58,6 +58,19 @@ const normalizeFilters = (
   });
   return filters;
 };
+
+const buildRouteStops = (
+  loadingPlace: AddressDto | undefined | null,
+  routePoints: AddressDto[] | undefined | null,
+  unloadingPlace: AddressDto | undefined | null
+) => [
+  { label: "Погрузка", address: formatAddress(loadingPlace ?? {}) },
+  ...(routePoints ?? []).map((point, index) => ({
+    label: `Точка ${index + 1}`,
+    address: formatAddress(point ?? {}),
+  })),
+  { label: "Разгрузка", address: formatAddress(unloadingPlace ?? {}) },
+];
 
 export const CargoListPage = () => {
   const navigate = useNavigate();
@@ -305,6 +318,8 @@ export const CargoListPage = () => {
                   const coverUrl =
                     typeof firstFileId === "number" ? fileUrlById[firstFileId] : undefined;
                   const isOwnCargo = Boolean(currentUserUuid && c.userUuid === currentUserUuid);
+                  const routeStops = buildRouteStops(c.loadingPlace, c.routePoints, c.unloadingPlace);
+                  const routeSummary = formatRoute(c.loadingPlace, c.routePoints, c.unloadingPlace);
 
                   return (
                 <Card
@@ -355,18 +370,26 @@ export const CargoListPage = () => {
                         </div>
                       </div>
 
-                      <div className="entity-card-route-grid">
-                        <div className="entity-card-info-item">
-                          <Text type="secondary">Откуда</Text>
-                          <Text ellipsis={{ tooltip: formatAddress(c.loadingPlace ?? {}) }}>
-                            {formatAddress(c.loadingPlace ?? {})}
+                      <div className="entity-card-route-panel">
+                        <div className="entity-card-route-header">
+                          <Text strong>Маршрут</Text>
+                          <Text type="secondary" ellipsis={{ tooltip: routeSummary }}>
+                            {(c.routePoints?.length ?? 0) > 0
+                              ? `${routeStops.length} точки`
+                              : "Прямой маршрут"}
                           </Text>
                         </div>
-                        <div className="entity-card-info-item">
-                          <Text type="secondary">Куда</Text>
-                          <Text ellipsis={{ tooltip: formatAddress(c.unloadingPlace ?? {}) }}>
-                            {formatAddress(c.unloadingPlace ?? {})}
-                          </Text>
+
+                        <div className="entity-card-route-path">
+                          {routeStops.map((stop, index) => (
+                            <div className="entity-card-route-stop" key={`${stop.label}-${index}`}>
+                              <span className="entity-card-route-marker">{index + 1}</span>
+                              <div className="entity-card-route-stop-text">
+                                <Text type="secondary">{stop.label}</Text>
+                                <Text ellipsis={{ tooltip: stop.address }}>{stop.address}</Text>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
 

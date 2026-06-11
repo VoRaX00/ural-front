@@ -27,6 +27,7 @@ import {
   formatDateTime,
   formatDecimal,
   formatKgAndTonnes,
+  formatRoute,
   formatTonnesFromKg,
 } from "../../utils/format";
 import {
@@ -152,6 +153,20 @@ export const ContractsListPage = () => {
                       <Text className="contract-card-section-title" type="secondary">
                         Маршрут
                       </Text>
+                      <div className="entity-card-meta">
+                        <Text type="secondary">Маршрут</Text>
+                        <Text
+                          ellipsis={{
+                            tooltip: formatRoute(
+                              c.cargo?.loadingPlace,
+                              c.cargo?.routePoints,
+                              c.cargo?.unloadingPlace
+                            ),
+                          }}
+                        >
+                          {formatRoute(c.cargo?.loadingPlace, c.cargo?.routePoints, c.cargo?.unloadingPlace)}
+                        </Text>
+                      </div>
                       <div className="entity-card-meta">
                         <Text type="secondary">Откуда</Text>
                         <Text ellipsis={{ tooltip: formatAddress(c.cargo?.loadingPlace ?? {}) }}>

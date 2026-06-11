@@ -34,6 +34,18 @@ export function formatAddress(a: {
   return parts.length ? parts.join(", ") : "—";
 }
 
+export function formatRoute(
+  loadingPlace: Parameters<typeof formatAddress>[0] | undefined | null,
+  routePoints: Array<Parameters<typeof formatAddress>[0]> | undefined | null,
+  unloadingPlace: Parameters<typeof formatAddress>[0] | undefined | null
+): string {
+  const points = [loadingPlace, ...(routePoints ?? []), unloadingPlace]
+    .map((point) => formatAddress(point ?? {}))
+    .filter((point) => point !== "—");
+
+  return points.length ? points.join(" → ") : "—";
+}
+
 export function formatDecimal(n: number | undefined | null): string {
   if (n === undefined || n === null || Number.isNaN(n)) return "—";
   return String(n);
